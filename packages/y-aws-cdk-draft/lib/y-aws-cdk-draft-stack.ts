@@ -77,13 +77,6 @@ export class WebSocketApiStack extends cdk.Stack {
       },
     });
 
-    webSocketApi.addRoute("rgaerihgaerghlaiehgraruiehgaeluirhg", {
-      integration: new WebSocketLambdaIntegration(
-        "SendMessageIntegration",
-        defaultHandler
-      ),
-    });
-
     new apig.WebSocketStage(this, "WebSocketStage", {
       webSocketApi,
       stageName: "dev",
