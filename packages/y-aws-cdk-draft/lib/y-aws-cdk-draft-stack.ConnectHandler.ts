@@ -11,5 +11,9 @@ export const handler: Handler = async (event) => {
     Item: { pk: roomId, sk: connectionId, roomId, connectionId },
   });
 
-  return { statusCode: 200, body: "Connected" };
+  return {
+    statusCode: 200,
+    body: "Connected",
+    headers: { "Sec-WebSocket-Protocol": roomId },
+  };
 };

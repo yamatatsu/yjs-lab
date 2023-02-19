@@ -60,7 +60,9 @@ export class WebSocketApiStack extends cdk.Stack {
         ),
         authorizer: new WebSocketLambdaAuthorizer(
           "Authorizer",
-          authorizerHandler
+          authorizerHandler,
+          // use `Sec-WebSocket-Protocol` header for auth, because `WebSocket` class cannot set `Authorization` request header
+          { identitySource: ["route.request.header.Sec-WebSocket-Protocol"] }
         ),
       },
       disconnectRouteOptions: {

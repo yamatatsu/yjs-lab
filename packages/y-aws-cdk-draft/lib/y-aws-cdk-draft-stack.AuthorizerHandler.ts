@@ -6,8 +6,11 @@ type Response = Promise<APIGatewayIAMAuthorizerResult | "Unauthorized">;
 export const handler = async (event: Event): Response => {
   console.log(JSON.stringify(event, null, 2));
 
-  const token = event.headers.Authorization;
-  const roomId = event.headers["Sec-WebSocket-Protocol"];
+  /**
+   * `Sec-WebSocket-Protocol` header is used as the payload for auth token and roomId.
+   * Because AWS API Gateway WebSocket API does not support custom path.
+   */
+  const [token, roomId] = event.headers["Sec-WebSocket-Protocol"].split(",");
 
   if (isUnauthorized(token)) {
     console.info("Unauthorized");

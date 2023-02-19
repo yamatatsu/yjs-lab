@@ -19,8 +19,7 @@ test.each`
 `("authorized", async ({ authorizationHeader, expected }) => {
   const res = await handler({
     headers: {
-      "Sec-WebSocket-Protocol": "test-roomId",
-      Authorization: authorizationHeader,
+      "Sec-WebSocket-Protocol": `${authorizationHeader},test-roomId`,
     },
     methodArn: "test-methodArnArn",
   });

@@ -13,7 +13,11 @@ test("success", async () => {
     },
     isBase64Encoded: false,
   });
-  expect(res).toEqual({ statusCode: 200, body: "Connected" });
+  expect(res).toEqual({
+    statusCode: 200,
+    body: "Connected",
+    headers: { "Sec-WebSocket-Protocol": "test-room" },
+  });
 
   const item = await DB.get({
     Key: { pk: "test-room", sk: "test-connectionId" },

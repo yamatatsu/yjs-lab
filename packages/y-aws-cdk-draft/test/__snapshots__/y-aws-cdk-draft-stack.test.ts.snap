@@ -465,7 +465,7 @@ exports[`Snapshot test 1`] = `
           ],
         },
         "IdentitySource": [
-          "route.request.header.Authorization",
+          "route.request.header.Sec-WebSocket-Protocol",
         ],
         "Name": "Authorizer",
       },
