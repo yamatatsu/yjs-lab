@@ -8,13 +8,40 @@ importers:
     devDependencies:
       prettier: 2.8.4
 
+  packages/node-client:
+    specifiers:
+      '@types/node': 18.13.0
+      '@types/ws': ^8.5.4
+      dotenv: ^16.0.3
+      lib0: ^0.2.62
+      typescript: ~4.9.5
+      vite-node: ^0.28.5
+      ws: ^8.12.1
+      y-protocols: ^1.0.5
+      yjs: ^13.5.45
+    dependencies:
+      dotenv: 16.0.3
+      lib0: 0.2.62
+      ws: 8.12.1
+      y-protocols: 1.0.5
+      yjs: 13.5.45
+    devDependencies:
+      '@types/node': 18.13.0
+      '@types/ws': 8.5.4
+      typescript: 4.9.5
+      vite-node: 0.28.5_@types+node@18.13.0
+
   packages/play-yjs:
     specifiers:
       '@types/node': 18.13.0
+      lib0: ^0.2.62
       typescript: ~4.9.5
       vitest: ^0.28.5
+      y-protocols: ^1.0.5
       yjs: ^13.5.45
     dependencies:
+      lib0: 0.2.62
+      y-protocols: 1.0.5
       yjs: 13.5.45
     devDependencies:
       '@types/node': 18.13.0
@@ -2044,6 +2071,12 @@ packages:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
     dev: true
 
+  /@types/ws/8.5.4:
+    resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
+    dependencies:
+      '@types/node': 18.13.0
+    dev: true
+
   /@types/yargs-parser/21.0.0:
     resolution: {integrity: sha512-iO9ZQHkZxHn4mSakYV0vFHAVDyEOIJQrV2uZ06HxEPcx+mt8swXoZHIbaaJ2crJYFfErySgktuTZ3BeLz+XmFA==}
     dev: true
@@ -2590,6 +2623,11 @@ packages:
     resolution: {integrity: sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==}
     engines: {node: '>=0.3.1'}
     dev: true
+
+  /dotenv/16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+    dev: false
 
   /dynalite/3.2.2:
     resolution: {integrity: sha512-sx9ZjTgMs/D4gHnba4rnBkw29648dHwHmywJet132KAbiq1ZyWx9W1fMd/eP9cPwTKDXyCBuTYOChE0qMDjaXQ==}
@@ -4546,10 +4584,29 @@ packages:
       signal-exit: 3.0.7
     dev: true
 
+  /ws/8.12.1:
+    resolution: {integrity: sha512-1qo+M9Ba+xNhPB+YTWUlK6M17brTut5EXbcBaMRN5pH5dFrXz7lzz1ChFSUq3bOUl8yEvSenhHmYUNJxFzdJew==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: false
+
   /xtend/4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
     dev: true
+
+  /y-protocols/1.0.5:
+    resolution: {integrity: sha512-Wil92b7cGk712lRHDqS4T90IczF6RkcvCwAD0A2OPg+adKmOe+nOiT/N2hvpQIWS3zfjmtL4CPaH5sIW1Hkm/A==}
+    dependencies:
+      lib0: 0.2.62
+    dev: false
 
   /y18n/5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
