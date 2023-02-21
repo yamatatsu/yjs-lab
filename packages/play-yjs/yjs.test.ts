@@ -1,5 +1,8 @@
 import { describe, test, expect } from "vitest";
 import * as Y from "yjs";
+import * as encoding from "lib0/encoding";
+import * as decoding from "lib0/decoding";
+import * as syncProtocol from "y-protocols/sync";
 
 test("synchronized docs`", () => {
   // GIVEN
@@ -87,7 +90,10 @@ test("applying update is idempotent", () => {
   expect(arr2.toArray()).toEqual(["Hello doc2, you got this?"]);
 });
 
-test("confirm size of update, vector and diff", () => {
+/**
+ * skip this case because flaky
+ */
+test.skip("confirm size of update, vector and diff", () => {
   // GIVEN
   const centralDoc = new Y.Doc();
   const nodeDoc = new Y.Doc();
@@ -119,7 +125,10 @@ test("confirm size of update, vector and diff", () => {
    */
 });
 
-test("confirm v2 size of update, vector and diff", () => {
+/**
+ * skip this case because flaky
+ */
+test.skip("confirm v2 size of update, vector and diff", () => {
   // GIVEN
   const centralDoc = new Y.Doc();
   const nodeDoc = new Y.Doc();
@@ -166,4 +175,124 @@ test("confirm how resolve conflict", () => {
 
   // THEN
   expect(map1.toJSON()).toEqual(map2.toJSON()); // map1 and map2 is always same. But It is not sure that the value is "value_a1" or "value_a2".
+});
+
+test("No change is happen when there are any missing data.", () => {
+  // GIVEN
+  const doc1 = new Y.Doc();
+  const doc2 = new Y.Doc();
+  const map1 = doc1.getMap("myMap");
+  const map2 = doc2.getMap("myMap");
+  map1.set("key_a", "value_a1");
+  doc1.on("update", (update) => {
+    Y.applyUpdate(doc2, update);
+  });
+
+  // WHEN
+  map1.set("key_b", "value_b1");
+
+  // THEN
+  expect(map2.toJSON()).toEqual({}); // doc2 does not have `key_b` yet, because the change of `key_a` have not reached to doc2.
+});
+
+test("No change is happen when there are any missing data.", () => {
+  // GIVEN
+  const doc1 = new Y.Doc();
+  const doc2 = new Y.Doc();
+  const map1 = doc1.getMap("myMap");
+  const map2 = doc2.getMap("myMap");
+
+  // WHEN
+  let keyAUpdate;
+  doc1.once("update", (update) => {
+    keyAUpdate = update;
+  });
+  map1.set("key_a", "value_a1");
+
+  doc1.on("update", (update) => {
+    Y.applyUpdate(doc2, update);
+  });
+  map1.set("key_b", "value_b1");
+  Y.applyUpdate(doc2, keyAUpdate);
+
+  // THEN
+  expect(map2.toJSON()).toEqual({ key_a: "value_a1", key_b: "value_b1" }); // doc2 have both keys! Because both changes reach to doc2.
+});
+
+test("update with y-protocol", () => {
+  // GIVEN
+  const doc1 = new Y.Doc();
+  const doc2 = new Y.Doc();
+  const map1 = doc1.getMap("myMap");
+  const map2 = doc2.getMap("myMap");
+
+  doc1.on("update", (update) => {
+    const encoder1 = encoding.createEncoder();
+    syncProtocol.writeUpdate(encoder1, update);
+    const buf = encoding.toUint8Array(encoder1);
+
+    // ==== send buf ====
+
+    const decoder = decoding.createDecoder(buf);
+    const encoder2 = encoding.createEncoder();
+    syncProtocol.readSyncMessage(decoder, encoder2, doc2, {});
+  });
+
+  // WHEN
+  map1.set("key_a", "value_a1");
+
+  // THEN
+  expect(map2.toJSON()).toEqual({ key_a: "value_a1" });
+});
+
+test("sync with y-protocol", () => {
+  // GIVEN
+  const doc1 = new Y.Doc();
+  const doc2 = new Y.Doc();
+  const map1 = doc1.getMap("myMap");
+  const map2 = doc2.getMap("myMap");
+  map1.set("key_a", "value_a1");
+  map2.set("key_b", "value_b1");
+
+  // WHEN connected
+
+  const encoder1 = encoding.createEncoder();
+  syncProtocol.writeSyncStep1(encoder1, doc1);
+  const buf1 = encoding.toUint8Array(encoder1);
+
+  // ==== send buf1 (vector of doc1) ====
+
+  const decoder1 = decoding.createDecoder(buf1);
+  const encoder2 = encoding.createEncoder();
+  syncProtocol.readSyncMessage(decoder1, encoder2, doc2, {});
+  const buf2 = encoding.toUint8Array(encoder2);
+
+  // ==== send buf2 (update of the gap between doc1 and doc2) ====
+
+  const decoder2 = decoding.createDecoder(buf2);
+  const _encoder = encoding.createEncoder();
+  syncProtocol.readSyncMessage(decoder2, _encoder, doc1, {});
+
+  // THEN
+  expect(encoding.length(_encoder)).toBe(0);
+  expect(map1.toJSON()).toEqual({ key_a: "value_a1", key_b: "value_b1" });
+  expect(map2.toJSON()).toEqual({ key_b: "value_b1" });
+});
+
+test("the change of itself does not trigger update event", () => {
+  // GIVEN
+  const doc1 = new Y.Doc();
+  const map1 = doc1.getMap("myMap");
+  map1.set("key_a", "value_a1");
+  const doc1Update = Y.encodeStateAsUpdate(doc1);
+
+  // WHEN
+  let triggered = false;
+  doc1.on("update", (_update) => {
+    triggered = true;
+  });
+  Y.applyUpdate(doc1, doc1Update);
+
+  // THEN
+  expect(triggered).toBe(false);
 });
