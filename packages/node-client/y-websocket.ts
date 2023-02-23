@@ -106,7 +106,7 @@ messageHandlers[messageAuth] = (
  * @param {WebsocketProvider} provider
  * @param {string} reason
  */
-const permissionDeniedHandler = (provider, reason) =>
+const permissionDeniedHandler = (provider: WebsocketProvider, reason: string) =>
   console.warn(`Permission denied to access ${provider.url}.\n${reason}`);
 
 /**
@@ -115,7 +115,11 @@ const permissionDeniedHandler = (provider, reason) =>
  * @param {boolean} emitSynced
  * @return {encoding.Encoder}
  */
-const readMessage = (provider, buf, emitSynced) => {
+const readMessage = (
+  provider: WebsocketProvider,
+  buf: Uint8Array,
+  emitSynced: boolean
+) => {
   const decoder = decoding.createDecoder(buf);
   const encoder = encoding.createEncoder();
   const messageType = decoding.readVarUint(decoder);
@@ -227,11 +231,11 @@ const setupWS = (provider: WebsocketProvider) => {
 
 /**
  * @param {WebsocketProvider} provider
- * @param {ArrayBuffer} buf
+ * @param {Uint8Array} buf
  */
-const broadcastMessage = (provider, buf) => {
+const broadcastMessage = (provider: WebsocketProvider, buf: Uint8Array) => {
   if (provider.wsconnected) {
-    /** @type {WebSocket} */ provider.ws.send(toBase64(buf));
+    /** @type {WebSocket} */ provider.ws?.send(toBase64(buf));
   }
   if (provider.bcconnected) {
     bc.publish(provider.bcChannel, buf, provider);
