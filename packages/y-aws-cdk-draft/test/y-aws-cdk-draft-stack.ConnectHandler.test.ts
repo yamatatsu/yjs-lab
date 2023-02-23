@@ -9,23 +9,23 @@ test("success", async () => {
       connectionId: "test-connectionId",
       domainName: "test.example.com",
       stage: "prod",
-      authorizer: { roomId: "test-room" },
+      authorizer: { docId: "test-docId" },
     },
     isBase64Encoded: false,
   });
   expect(res).toEqual({
     statusCode: 200,
     body: "Connected",
-    headers: { "Sec-WebSocket-Protocol": "test-room" },
+    headers: { "Sec-WebSocket-Protocol": "test-docId" },
   });
 
   const item = await DB.get({
-    Key: { pk: "test-room", sk: "test-connectionId" },
+    Key: { pk: "test-docId", sk: "test-connectionId" },
   });
   expect(item).toEqual({
-    pk: "test-room",
+    pk: "test-docId",
     sk: "test-connectionId",
-    roomId: "test-room",
+    docId: "test-docId",
     connectionId: "test-connectionId",
   });
 });

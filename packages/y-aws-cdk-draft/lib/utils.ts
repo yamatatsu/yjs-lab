@@ -7,15 +7,15 @@ import type {
 type RequestContext = Pick<
   APIGatewayEventWebsocketRequestContextV2,
   "connectionId" | "domainName" | "stage"
-> & { authorizer: { roomId: string } };
+> & { authorizer: { docId: string } };
 
 type Event = APIGatewayProxyWebsocketEventV2WithRequestContext<RequestContext>;
 type Response = Promise<APIGatewayProxyResultV2<never>>;
 
 export type Handler = (event: Event) => Response;
 
-export function getRoomId(event: Event) {
-  return event.requestContext.authorizer.roomId;
+export function getDocId(event: Event) {
+  return event.requestContext.authorizer.docId;
 }
 export function getConnectionId(event: Event) {
   return event.requestContext.connectionId;

@@ -19,7 +19,7 @@ test("success", async () => {
       connectionId: "connectionId_0",
       domainName: "test.example.com",
       stage: "prod",
-      authorizer: { roomId: "roomId_0" },
+      authorizer: { docId: "docId_0" },
     },
     body: "test-message",
     isBase64Encoded: false,

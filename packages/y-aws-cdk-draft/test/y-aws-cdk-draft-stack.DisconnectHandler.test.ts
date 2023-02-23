@@ -9,14 +9,14 @@ test("success", async () => {
       connectionId: "connectionId_0",
       domainName: "test.example.com",
       stage: "prod",
-      authorizer: { roomId: "roomId_0" },
+      authorizer: { docId: "docId_0" },
     },
     isBase64Encoded: false,
   });
   expect(res).toEqual({ statusCode: 200, body: "Disconnected" });
 
   const item = await DB.get({
-    Key: { pk: "roomId_0", sk: "connectionId_0" },
+    Key: { pk: "docId_0", sk: "connectionId_0" },
   });
   expect(item).toBeNull();
 });

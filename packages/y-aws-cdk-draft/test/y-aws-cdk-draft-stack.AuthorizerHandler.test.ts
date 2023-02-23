@@ -13,13 +13,13 @@ test.each`
     Statement: [{ Action: "execute-api:Invoke", Effect: "Allow", Resource: "test-methodArnArn" }],
   },
   context: {
-    roomId: "test-roomId",
+    docId: "test-docId",
   },
 }}
 `("authorized", async ({ authorizationHeader, expected }) => {
   const res = await handler({
     headers: {
-      "Sec-WebSocket-Protocol": `${authorizationHeader},test-roomId`,
+      "Sec-WebSocket-Protocol": `${authorizationHeader},test-docId`,
     },
     methodArn: "test-methodArnArn",
   });

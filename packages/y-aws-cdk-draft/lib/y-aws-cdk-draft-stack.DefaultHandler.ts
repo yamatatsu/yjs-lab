@@ -3,7 +3,7 @@ import { DB } from "./db/dynamodb";
 import {
   Handler,
   getConnectionId,
-  getRoomId,
+  getDocId,
   getBody,
   getWebsocketEndpoint,
 } from "./utils";
@@ -12,13 +12,13 @@ export const handler: Handler = async (event) => {
   console.log(JSON.stringify(event, null, 2));
 
   const senderConnectionId = getConnectionId(event);
-  const roomId = getRoomId(event);
+  const docId = getDocId(event);
   const websocketEndpoint = getWebsocketEndpoint(event);
   const body = getBody(event) ?? "[empty-body]";
 
   const items = await DB.query({
     KeyConditionExpression: "pk = :pk",
-    ExpressionAttributeValues: { ":pk": roomId },
+    ExpressionAttributeValues: { ":pk": docId },
   });
 
   const send = apiGatewayManagementApi(websocketEndpoint);

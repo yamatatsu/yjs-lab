@@ -257,7 +257,7 @@ export class WebsocketProvider extends Observable<string> {
   public maxBackoffTime: number;
   public bcChannel: string;
   public url: string;
-  public roomname: string;
+  public docId: string;
   public doc: Y.Doc;
   public awareness: awarenessProtocol.Awareness;
   public wsconnected: boolean;
@@ -281,7 +281,7 @@ export class WebsocketProvider extends Observable<string> {
 
   /**
    * @param {string} serverUrl
-   * @param {string} roomname
+   * @param {string} docId
    * @param {Y.Doc} doc
    * @param {object} [opts]
    * @param {boolean} [opts.connect]
@@ -294,7 +294,7 @@ export class WebsocketProvider extends Observable<string> {
    */
   constructor(
     serverUrl: string,
-    roomname: string,
+    docId: string,
     doc: Y.Doc,
     {
       connect = true,
@@ -323,14 +323,9 @@ export class WebsocketProvider extends Observable<string> {
     }
     const encodedParams = url.encodeQueryParams(params);
     this.maxBackoffTime = maxBackoffTime;
-    this.bcChannel = serverUrl + "/" + roomname;
+    this.bcChannel = serverUrl + "/" + docId;
     this.url = serverUrl;
-    // this.url =
-    //   serverUrl +
-    //   "/" +
-    //   roomname +
-    //   (encodedParams.length === 0 ? "" : "?" + encodedParams);
-    this.roomname = roomname;
+    this.docId = docId;
     this.doc = doc;
     this._WS = WebSocketPolyfill;
     this.awareness = awareness;
@@ -338,7 +333,7 @@ export class WebsocketProvider extends Observable<string> {
     this.wsconnecting = false;
     this.bcconnected = false;
     this.disableBc = disableBc;
-    this.subprotocols = subprotocols.concat(roomname);
+    this.subprotocols = subprotocols.concat(docId);
     this.wsUnsuccessfulReconnects = 0;
     this.messageHandlers = messageHandlers.slice();
     /**

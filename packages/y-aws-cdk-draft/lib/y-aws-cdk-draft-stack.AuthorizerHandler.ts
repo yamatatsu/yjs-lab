@@ -7,10 +7,10 @@ export const handler = async (event: Event): Response => {
   console.log(JSON.stringify(event, null, 2));
 
   /**
-   * `Sec-WebSocket-Protocol` header is used as the payload for auth token and roomId.
+   * `Sec-WebSocket-Protocol` header is used as the payload for auth token and docId.
    * Because AWS API Gateway WebSocket API does not support custom path.
    */
-  const [token, roomId] = event.headers["Sec-WebSocket-Protocol"].split(",");
+  const [token, docId] = event.headers["Sec-WebSocket-Protocol"].split(",");
 
   if (isUnauthorized(token)) {
     console.info("Unauthorized");
@@ -18,7 +18,7 @@ export const handler = async (event: Event): Response => {
   }
 
   console.info("Authorized");
-  return getPolicy(roomId, event.methodArn);
+  return getPolicy(docId, event.methodArn);
 };
 
 // ==============================
@@ -29,7 +29,7 @@ function isUnauthorized(token?: string): boolean {
 }
 
 function getPolicy(
-  roomId: string,
+  docId: string,
   methodArn: string
 ): APIGatewayIAMAuthorizerResult {
   return {
@@ -45,7 +45,7 @@ function getPolicy(
       ],
     },
     context: {
-      roomId,
+      docId: docId,
     },
   };
 }
