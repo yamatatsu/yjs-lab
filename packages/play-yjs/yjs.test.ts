@@ -53,7 +53,7 @@ test("use vector", () => {
   expect(arr2.toArray()).toEqual(["first"]);
 });
 
-test("applying update is commutative", () => {
+test.only("applying update is commutative", () => {
   // GIVEN
   const doc1 = new Y.Doc();
   const doc2 = new Y.Doc();
@@ -61,15 +61,19 @@ test("applying update is commutative", () => {
   const arr2 = doc2.getArray("myArray");
 
   // WHEN
+  const updates: Uint8Array[] = [];
+  doc1.on("update", (update: Uint8Array) => {
+    updates.push(update);
+  });
   arr1.push(["first"]);
-  const update1 = Y.encodeStateAsUpdate(doc1);
-  arr1.insert(0, ["second"]);
-  const update2 = Y.encodeStateAsUpdate(doc1);
-  Y.applyUpdate(doc2, update2); // update1 and update2 are inverted
-  Y.applyUpdate(doc2, update1); // update1 and update2 are inverted
+  arr1.push(["second"]);
+  // apply updates in reverse order
+  updates.reverse().forEach((update) => {
+    Y.applyUpdate(doc2, update);
+  });
 
   // THEN
-  expect(arr2.toArray()).toEqual(["second", "first"]);
+  expect(arr2.toArray()).toEqual(["first", "second"]);
 });
 
 test("applying update is idempotent", () => {
@@ -78,16 +82,18 @@ test("applying update is idempotent", () => {
   const doc2 = new Y.Doc();
   const arr1 = doc1.getArray("myArray");
   const arr2 = doc2.getArray("myArray");
-  arr1.push(["Hello doc2, you got this?"]);
-  const vector2 = Y.encodeStateVector(doc2);
-  const diff = Y.encodeStateAsUpdate(doc1, vector2);
 
-  // WHEN
-  Y.applyUpdate(doc2, diff);
-  Y.applyUpdate(doc2, diff);
+  // WHEN an update are applied twice.
+  doc1.on("update", (update: Uint8Array) => {
+    Y.applyUpdate(doc2, update);
+  });
+  doc1.on("update", (update: Uint8Array) => {
+    Y.applyUpdate(doc2, update);
+  });
+  arr1.push(["Hello doc2, you got this just once?"]);
 
   // THEN
-  expect(arr2.toArray()).toEqual(["Hello doc2, you got this?"]);
+  expect(arr2.toArray()).toEqual(["Hello doc2, you got this just once?"]);
 });
 
 /**
