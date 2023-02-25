@@ -1,23 +1,20 @@
 import * as Y from "yjs";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import YDynamoDBClient from "./database";
-import { DocumentKey } from "./types";
 
 export const PREFERRED_TRIM_SIZE = 500;
-
-type DynamodbItem = { ykeysort: DocumentKey; value: Uint8Array };
 
 /**
  * For now this is a helper method that creates a Y.Doc and then re-encodes a document update.
  * In the future this will be handled by Yjs without creating a Y.Doc (constant memory consumption).
  */
 const mergeUpdates = (
-  updates: Array<DynamodbItem>
+  updates: Uint8Array[]
 ): { ydoc: Y.Doc; update: Uint8Array; sv: Uint8Array } => {
   const ydoc = new Y.Doc();
   ydoc.transact(() => {
     updates.forEach((update) => {
-      Y.applyUpdate(ydoc, update.value);
+      Y.applyUpdate(ydoc, update);
     });
   });
   return {
@@ -25,21 +22,6 @@ const mergeUpdates = (
     update: Y.encodeStateAsUpdate(ydoc),
     sv: Y.encodeStateVector(ydoc),
   };
-};
-
-/**
- * @return Returns -1 if this document doesn't exist yet
- */
-const getCurrentUpdateClock = async (
-  client: YDynamoDBClient,
-  docName: string
-): Promise<number> => {
-  const items = await client.getUpdates(docName);
-
-  if (!items[0]?.ykeysort) return -1;
-
-  // @ts-ignore TODO:
-  return items[0].ykeysort[3];
 };
 
 /**
@@ -65,8 +47,7 @@ const storeUpdate = async (
   docName: string,
   update: Uint8Array
 ): Promise<number> => {
-  const clock = await getCurrentUpdateClock(client, docName);
-  console.warn("🪴storeUpdate", { clock });
+  const clock = await client.getCurrentUpdateClock(docName);
   if (clock === -1) {
     // make sure that a state vector is always written, so we can search for available documents
     const ydoc = new Y.Doc();
@@ -83,7 +64,7 @@ type Config = {
 };
 type TransactCallback = () => Promise<any>;
 
-export default class DynamoDbPersistence {
+export default class DynamodbPersistence {
   private readonly client: YDynamoDBClient;
 
   constructor(
@@ -134,7 +115,7 @@ export default class DynamoDbPersistence {
       let curClock = -1;
       /* istanbul ignore next */
       if (sv !== null) {
-        curClock = await getCurrentUpdateClock(this.client, docName);
+        curClock = await this.client.getCurrentUpdateClock(docName);
       }
       if (sv !== null && clock === curClock) {
         return sv;
@@ -211,8 +192,6 @@ export default class DynamoDbPersistence {
       let res = null;
       /* istanbul ignore next */
       try {
-        console.warn("🪴🪴🪴🪴");
-
         res = await f();
       } catch (err) {
         console.warn("Error during y-dynamodb transaction", err);

@@ -60,10 +60,10 @@ describe("update", () => {
     );
 
     // WHEN
-    const updateItems = await client.getUpdates(docName);
+    const storedUpdates = await client.getUpdates(docName);
     const remoteYDoc = new Y.Doc();
-    updateItems.forEach((update) => {
-      Y.applyUpdate(remoteYDoc, update.value);
+    storedUpdates.forEach((update) => {
+      Y.applyUpdate(remoteYDoc, update);
     });
 
     // THEN
@@ -87,11 +87,32 @@ describe("update", () => {
 
     // WHEN delete 99 items (index 1 ~ 99)
     await client.deleteUpdatesRange(docName, 1, 100);
-    const updateItems = await client.getUpdates(docName);
+    const storedUpdates = await client.getUpdates(docName);
 
     // THEN
-    expect(updateItems).toHaveLength(1);
-    expect(updateItems[0].ykeysort[3]).toBe(100);
+    expect(storedUpdates).toHaveLength(1);
+  });
+
+  test("getCurrentUpdateClock", async () => {
+    // GIVEN
+    const doc = new Y.Doc();
+    const updates: Uint8Array[] = [];
+    doc.on("update", (update: Uint8Array) => {
+      updates.push(update);
+    });
+    // 100 items
+    for (let i = 0; i < 100; i++) {
+      doc.getArray("myArray").push([i]);
+    }
+    await Promise.all(
+      updates.map((update, i) => client.putUpdate(docName, i, update))
+    );
+
+    // WHEN
+    const clock = await client.getCurrentUpdateClock(docName);
+
+    // THEN
+    expect(clock).toBe(100);
   });
 });
 

@@ -11,48 +11,22 @@ import {
   WriteRequest,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
-import * as binary from "lib0/binary";
 import * as buffer from "lib0/buffer";
-import { stateVectorEncoding, valueEncoding, keyEncoding } from "./encoding";
+import { stateVectorEncoding, valueEncoding } from "./encoding";
 
-type DocumentKey =
-  | [string, string]
-  | [string, string, string]
-  | [string, string, string, string | number];
+const createUpdateKey = (clock?: number): string =>
+  `update:${clock?.toString().padStart(64, "0") ?? ""}`;
+const createMetaKey = (metaKey: string): string => `meta:${metaKey}`;
+const createStateVectorKey = (): string => "sv";
 
-const createDocumentUpdateKey = (
-  docName: string,
-  clock: number
-): DocumentKey => ["v1", docName, "update", clock];
-const createDocumentMetaKey = (
-  docName: string,
-  metaKey: string
-): DocumentKey => ["v1", docName, "meta", metaKey];
-const createDocumentMetaEndKey = (docName: string): DocumentKey => [
-  "v1",
-  docName,
-  "metb",
-]; // simple trick
-const createDocumentStateVectorKey = (docName: string): DocumentKey => [
-  "v1_sv",
-  docName,
-];
-const createDocumentFirstKey = (docName: string): DocumentKey => [
-  "v1",
-  docName,
-];
-const createDocumentLastKey = (docName: string): DocumentKey => [
-  "v1",
-  docName,
-  "zzzzzzz",
-];
-
-type RawItem = {
-  ykeysort: AttributeValue.BMember;
+type DynamodbItem = {
+  ykeysort: AttributeValue.SMember;
   value: AttributeValue.BMember;
 };
-type DynamoDBItem = { ykeysort: DocumentKey; value: Uint8Array };
 
+/**
+ * This class concealing the schema of database.
+ */
 export default class YDynamoDBClient {
   constructor(
     private readonly client: DynamoDBClient,
@@ -73,7 +47,7 @@ export default class YDynamoDBClient {
   ): Promise<void> {
     return this.put(
       docName,
-      createDocumentStateVectorKey(docName),
+      createStateVectorKey(),
       stateVectorEncoding.encode({ sv, clock })
     );
   }
@@ -81,38 +55,47 @@ export default class YDynamoDBClient {
   async getStateVector(
     docName: string
   ): Promise<{ sv: Uint8Array | null; clock: number }> {
-    const item = await this.get(docName, createDocumentStateVectorKey(docName));
+    const item = await this.get(docName, createStateVectorKey());
     /* istanbul ignore if */
     if (item === null) {
       // no state vector created yet or no document exists
       return { sv: null, clock: -1 };
     }
-    return stateVectorEncoding.decode(item.value);
+    return stateVectorEncoding.decode(item.value.B);
   }
 
   deleteStateVector(docName: string): Promise<void> {
-    return this.delete(docName, createDocumentStateVectorKey(docName));
+    return this.delete(docName, createStateVectorKey());
   }
 
   // Update
 
   putUpdate(docName: string, clock: number, update: Uint8Array): Promise<void> {
-    return this.put(
-      docName,
-      createDocumentUpdateKey(docName, clock + 1),
-      update
-    );
+    return this.put(docName, createUpdateKey(clock + 1), update);
   }
 
   /**
    * Get all document updates for a specific document.
    */
-  getUpdates(docName: string): Promise<DynamoDBItem[]> {
-    return this.query(
-      docName,
-      createDocumentUpdateKey(docName, 0),
-      createDocumentUpdateKey(docName, binary.BITS32)
-    );
+  async getUpdates(docName: string): Promise<Uint8Array[]> {
+    const items = await this.query({
+      ...this.createBeginsWithQueryInput(docName, createUpdateKey()),
+    });
+    return items.map((item) => item.value.B);
+  }
+
+  /**
+   * @return Returns -1 if this document doesn't exist yet
+   */
+  async getCurrentUpdateClock(docName: string): Promise<number> {
+    const items = await this.query({
+      ...this.createBeginsWithQueryInput(docName, createUpdateKey()),
+      ScanIndexForward: false,
+    });
+
+    if (!items[0]?.ykeysort) return -1;
+
+    return Number(items[0].ykeysort.S.replace("update:", ""));
   }
 
   /**
@@ -120,70 +103,70 @@ export default class YDynamoDBClient {
    * @param from Greater than or equal
    * @param to lower than (not equal)
    */
-  deleteUpdatesRange(docName: string, from: number, to: number): Promise<void> {
-    return this.clearRange(
-      docName,
-      createDocumentUpdateKey(docName, from),
-      createDocumentUpdateKey(docName, to - 1)
-    );
+  async deleteUpdatesRange(
+    docName: string,
+    from: number,
+    to: number
+  ): Promise<void> {
+    const items = await this.query({
+      ...this.createBetweenQueryInput(
+        docName,
+        createUpdateKey(from),
+        createUpdateKey(to - 1)
+      ),
+      ProjectionExpression: "ykeysort",
+    });
+
+    await this.clearItems(docName, items);
   }
 
   // Meta
 
   putMeta(docName: string, metaKey: string, value: any): Promise<void> {
-    return this.put(
-      docName,
-      createDocumentMetaKey(docName, metaKey),
-      buffer.encodeAny(value)
-    );
+    return this.put(docName, createMetaKey(metaKey), buffer.encodeAny(value));
   }
 
   async getMetas(docName: string): Promise<Map<string, any>> {
-    const items = await this.query(
-      docName,
-      createDocumentMetaKey(docName, ""),
-      createDocumentMetaEndKey(docName)
-    );
+    const items = await this.query({
+      ...this.createBeginsWithQueryInput(docName, createMetaKey("")),
+    });
     const metas = new Map();
     items.forEach((item) => {
-      metas.set(item.ykeysort[3], buffer.decodeAny(item.value));
+      metas.set(
+        // TODO: refactoring
+        item.ykeysort.S.replace("meta:", ""),
+        buffer.decodeAny(item.value.B)
+      );
     });
     return metas;
   }
 
   async getMeta(docName: string, metaKey: string): Promise<any | null> {
-    const item = await this.get(
-      docName,
-      createDocumentMetaKey(docName, metaKey)
-    );
-    return item && buffer.decodeAny(item.value);
+    const item = await this.get(docName, createMetaKey(metaKey));
+    return item && buffer.decodeAny(item.value.B);
   }
 
   deleteMeta(docName: string, metaKey: string): Promise<void> {
-    return this.delete(docName, createDocumentMetaKey(docName, metaKey));
+    return this.delete(docName, createMetaKey(metaKey));
   }
 
   // Document
 
-  deleteDocument(docName: string): Promise<void> {
-    return this.clearRange(
-      docName,
-      createDocumentFirstKey(docName),
-      createDocumentLastKey(docName)
-    );
+  async deleteDocument(docName: string): Promise<void> {
+    const items = await this.query({
+      ...this.createQueryAllInput(docName),
+      ProjectionExpression: "ykeysort",
+    });
+    await this.clearItems(docName, items);
   }
 
   // ===============
   // private
 
-  private async clearRange(
+  private async clearItems(
     docName: string,
-    gte: DocumentKey,
-    lt: DocumentKey
+    items: DynamodbItem[]
   ): Promise<void> {
-    // Get items in range
-    const items = await this.query(docName, gte, lt);
-
     // DynamoDB only allows a maximum of 25 items in bulk updates
     // So need to chunk list of items
     const requests = items.map(
@@ -191,8 +174,7 @@ export default class YDynamoDBClient {
         DeleteRequest: {
           Key: {
             ydocname: { S: v1PKey(docName) },
-            // TODO: we can optimize it.
-            ykeysort: { B: keyEncoding.encode(item.ykeysort) },
+            ykeysort: { S: item.ykeysort.S },
           },
         },
       })
@@ -209,39 +191,61 @@ export default class YDynamoDBClient {
     );
   }
 
-  private async query(
+  private createBetweenQueryInput(
     docName: string,
-    from: DocumentKey,
-    to: DocumentKey,
-    onlyYkeysort: boolean = false
-  ): Promise<DynamoDBItem[]> {
-    const input: QueryInput = {
+    from: string,
+    to: string
+  ): QueryInput {
+    return {
       TableName: this.tableName,
       KeyConditionExpression:
         "ydocname = :docName and ykeysort between :id1 and :id2",
       ExpressionAttributeValues: {
         ":docName": { S: v1PKey(docName) },
-        ":id1": { B: keyEncoding.encode(from) },
-        ":id2": { B: keyEncoding.encode(to) },
+        ":id1": { S: from },
+        ":id2": { S: to },
       },
-      ProjectionExpression: onlyYkeysort ? "ykeysort" : undefined,
-      ScanIndexForward: true,
     };
+  }
 
+  private createBeginsWithQueryInput(
+    docName: string,
+    prefix: string
+  ): QueryInput {
+    return {
+      TableName: this.tableName,
+      KeyConditionExpression:
+        "ydocname = :docName and begins_with(ykeysort, :id)",
+      ExpressionAttributeValues: {
+        ":docName": { S: v1PKey(docName) },
+        ":id": { S: prefix },
+      },
+    };
+  }
+
+  private createQueryAllInput(docName: string): QueryInput {
+    return {
+      TableName: this.tableName,
+      KeyConditionExpression: "ydocname = :docName",
+      ExpressionAttributeValues: {
+        ":docName": { S: v1PKey(docName) },
+      },
+    };
+  }
+
+  private async query(input: QueryInput): Promise<DynamodbItem[]> {
     const data = await this.client.send(new QueryCommand(input));
-    const items = (data.Items ?? []) as RawItem[];
-
-    return items.map(decodeItem);
+    return (data.Items ?? []) as DynamodbItem[];
   }
 
   private async get(
     docName: string,
-    key: DocumentKey
-  ): Promise<DynamoDBItem | null> {
+    key: string
+  ): Promise<DynamodbItem | null> {
     const params = {
       Key: {
         ydocname: { S: v1PKey(docName) },
-        ykeysort: { B: keyEncoding.encode(key) },
+        ykeysort: { S: key },
       },
       TableName: this.tableName,
     };
@@ -250,13 +254,12 @@ export default class YDynamoDBClient {
     if (!data.Item) {
       return null;
     }
-    const item = data.Item as RawItem;
-    return decodeItem(item);
+    return data.Item as DynamodbItem;
   }
 
   private async put(
     docName: string,
-    key: DocumentKey,
+    key: string,
     val: Uint8Array
   ): Promise<void> {
     const input: PutItemInput = {
@@ -264,7 +267,7 @@ export default class YDynamoDBClient {
       ReturnConsumedCapacity: "TOTAL",
       Item: {
         ydocname: { S: v1PKey(docName) },
-        ykeysort: { B: keyEncoding.encode(key) },
+        ykeysort: { S: key },
         value: { B: valueEncoding.encode(val) },
       },
     };
@@ -280,11 +283,11 @@ export default class YDynamoDBClient {
     }
   }
 
-  private async delete(docName: string, key: DocumentKey): Promise<void> {
+  private async delete(docName: string, key: string): Promise<void> {
     const input: DeleteItemInput = {
       Key: {
         ydocname: { S: v1PKey(docName) },
-        ykeysort: { B: keyEncoding.encode(key) },
+        ykeysort: { S: key },
       },
       TableName: this.tableName,
     };
@@ -294,11 +297,6 @@ export default class YDynamoDBClient {
 }
 
 const v1PKey = (docName: string) => `v1:${docName}`;
-
-const decodeItem = (item: RawItem): DynamoDBItem => ({
-  ykeysort: keyEncoding.decode(item.ykeysort.B),
-  value: valueEncoding.decode(item.value.B),
-});
 
 function chunk<T>(arr: T[], size: number = 25): T[][] {
   if (arr.length === 0) {

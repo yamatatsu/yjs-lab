@@ -8,7 +8,7 @@ module.exports = {
       ],
       AttributeDefinitions: [
         { AttributeName: "ydocname", AttributeType: "S" },
-        { AttributeName: "ykeysort", AttributeType: "B" },
+        { AttributeName: "ykeysort", AttributeType: "S" },
       ],
       ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 },
       // data: [
