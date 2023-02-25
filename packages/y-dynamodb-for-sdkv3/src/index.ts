@@ -74,8 +74,8 @@ export default class DynamodbPersistence {
     this.client = new YDynamoDBClient(db, config.tableName);
   }
 
-  getYDoc(docName: string, outsideTransactionQueue: boolean = false) {
-    const callback: TransactCallback = async () => {
+  getYDoc(docName: string): Promise<Y.Doc> {
+    return this.transact(async () => {
       const updates = await this.client.getUpdates(docName);
 
       const { ydoc, update, sv } = mergeUpdates(updates);
@@ -83,34 +83,23 @@ export default class DynamodbPersistence {
         await flushDocument(this.client, docName, update, sv);
       }
       return ydoc;
-    };
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+    });
   }
 
-  storeUpdate(
-    docName: string,
-    update: Uint8Array,
-    outsideTransactionQueue: boolean = false
-  ) {
-    const callback: TransactCallback = () =>
-      storeUpdate(this.client, docName, update);
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+  storeUpdate(docName: string, update: Uint8Array): Promise<void> {
+    return this.transact(() => storeUpdate(this.client, docName, update));
   }
 
-  flushDocument(docName: string, outsideTransactionQueue: boolean = false) {
-    const callback: TransactCallback = async () => {
+  flushDocument(docName: string): Promise<number> {
+    return this.transact(async () => {
       const updates = await this.client.getUpdates(docName);
       const { update, sv } = mergeUpdates(updates);
       return flushDocument(this.client, docName, update, sv);
-    };
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+    });
   }
 
-  getStateVector(docName: string, outsideTransactionQueue: boolean = false) {
-    const callback: TransactCallback = async () => {
+  getStateVector(docName: string): Promise<Uint8Array> {
+    return this.transact(async () => {
       const { clock, sv } = await this.client.getStateVector(docName);
       let curClock = -1;
       /* istanbul ignore next */
@@ -126,77 +115,52 @@ export default class DynamodbPersistence {
         await flushDocument(this.client, docName, update, sv);
         return sv;
       }
-    };
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+    });
   }
 
-  async getDiff(docName: string, stateVector: Uint8Array) {
+  async getDiff(docName: string, stateVector: Uint8Array): Promise<Uint8Array> {
     const ydoc = await this.getYDoc(docName);
     return Y.encodeStateAsUpdate(ydoc, stateVector);
   }
 
-  clearDocument(docName: string, outsideTransactionQueue: boolean = false) {
-    const callback: TransactCallback = async () => {
+  clearDocument(docName: string): Promise<void> {
+    return this.transact(async () => {
       await this.client.deleteStateVector(docName);
       await this.client.deleteDocument(docName);
-    };
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+    });
   }
 
-  setMeta(
-    docName: string,
-    metaKey: string,
-    value: any,
-    outsideTransactionQueue: boolean = false
-  ) {
-    const callback: TransactCallback = () =>
-      this.client.putMeta(docName, metaKey, value);
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+  setMeta(docName: string, metaKey: string, value: any): Promise<void> {
+    return this.transact(() => this.client.putMeta(docName, metaKey, value));
   }
 
-  getMeta(
-    docName: string,
-    metaKey: string,
-    outsideTransactionQueue: boolean = false
-  ) {
-    const callback: TransactCallback = () =>
-      this.client.getMeta(docName, metaKey);
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+  getMeta(docName: string, metaKey: string): Promise<any> {
+    return this.transact(() => this.client.getMeta(docName, metaKey));
   }
 
-  getMetas(docName: string, outsideTransactionQueue: boolean = false) {
-    const callback: TransactCallback = () => this.client.getMetas(docName);
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+  getMetas(docName: string): Promise<Map<string, any>> {
+    return this.transact(() => this.client.getMetas(docName));
   }
 
-  delMeta(
-    docName: string,
-    metaKey: string,
-    outsideTransactionQueue: boolean = false
-  ) {
-    const callback: TransactCallback = () =>
-      this.client.deleteMeta(docName, metaKey);
-
-    return outsideTransactionQueue ? callback() : this.transact(callback);
+  delMeta(docName: string, metaKey: string): Promise<void> {
+    return this.transact(() => this.client.deleteMeta(docName, metaKey));
   }
 
   // Execute an transaction on a database. This will ensure that other processes are currently not writing.
   private currentTransaction: Promise<any> = Promise.resolve();
   private async transact(f: TransactCallback) {
-    return this.currentTransaction.then(async () => {
-      let res = null;
-      /* istanbul ignore next */
+    const currTr = this.currentTransaction;
+    this.currentTransaction = (async () => {
+      await currTr;
+      let res = /** @type {any} */ null;
       try {
         res = await f();
       } catch (err) {
-        console.warn("Error during y-dynamodb transaction", err);
+        /* istanbul ignore next */
+        console.warn("Error during y-leveldb transaction", err);
       }
       return res;
-    });
+    })();
+    return this.currentTransaction;
   }
 }

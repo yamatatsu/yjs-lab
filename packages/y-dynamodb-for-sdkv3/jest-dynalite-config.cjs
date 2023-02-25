@@ -11,12 +11,6 @@ module.exports = {
         { AttributeName: "ykeysort", AttributeType: "S" },
       ],
       ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 },
-      // data: [
-      //   {
-      //     ydocname: "ydocname_0",
-      //     ykeysort: "connectionId_0",
-      //   },
-      // ],
     },
   ],
   basePort: 8000,
