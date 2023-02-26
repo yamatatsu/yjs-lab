@@ -108,6 +108,10 @@ export default class YDynamoDBClient {
     from: number,
     to: number
   ): Promise<void> {
+    if (from >= to) {
+      return;
+    }
+
     const items = await this.query({
       ...this.createBetweenQueryInput(
         docName,

@@ -102,9 +102,6 @@ importers:
   packages/y-dynamodb-for-sdkv3:
     specifiers:
       '@aws-sdk/client-dynamodb': ^3.272.0
-      '@aws-sdk/lib-dynamodb': ^3.272.0
-      '@aws-sdk/smithy-client': ^3.272.0
-      '@aws-sdk/types': ^3.272.0
       '@types/jest': ^29.4.0
       '@types/node': 18.13.0
       jest: ^29.4.2
@@ -114,16 +111,14 @@ importers:
       typescript: ~4.9.5
       unbuild: ^1.1.2
       yjs: ^13.5.45
+    dependencies:
+      lib0: 0.2.62
     devDependencies:
       '@aws-sdk/client-dynamodb': 3.272.0
-      '@aws-sdk/lib-dynamodb': 3.272.0_gi3rqt2ipsxljafcodfdjlchei
-      '@aws-sdk/smithy-client': 3.272.0
-      '@aws-sdk/types': 3.272.0
       '@types/jest': 29.4.0
       '@types/node': 18.13.0
       jest: 29.4.2_@types+node@18.13.0
       jest-dynalite: 3.6.1_mgouxvsiz5a77kgz3ki5ucvzva
-      lib0: 0.2.62
       ts-jest: 29.0.5_gelezmms3va3pnkofxaadhcvma
       typescript: 4.9.5
       unbuild: 1.1.2
@@ -581,6 +576,7 @@ packages:
       '@aws-sdk/types': 3.272.0
       '@aws-sdk/util-dynamodb': 3.272.0
       tslib: 2.5.0
+    dev: false
 
   /@aws-sdk/middleware-content-length/3.272.0:
     resolution: {integrity: sha512-sAbDZSTNmLX+UTGwlUHJBWy0QGQkiClpHwVFXACon+aG0ySLNeRKEVYs6NCPYldw4cj6hveLUn50cX44ukHErw==}
@@ -851,6 +847,7 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       tslib: 2.5.0
+    dev: false
 
   /@aws-sdk/util-endpoints/3.272.0:
     resolution: {integrity: sha512-c4MPUaJt2G6gGpoiwIOqDfUa98c1J63RpYvf/spQEKOtC/tF5Gfqlxuq8FnAl5lHnrqj1B9ZXLLxFhHtDR0IiQ==}
@@ -3821,7 +3818,7 @@ packages:
       '@aws-sdk/client-dynamodb': 3.272.0
       '@aws/dynamodb-auto-marshaller': 0.7.1
       dynalite: 3.2.2
-      jest: 29.4.2_@types+node@18.13.0
+      jest: 29.4.2_ucpl6toqp57nqodtp3vxxi6g5a
       setimmediate: 1.0.5
     dev: true
 
