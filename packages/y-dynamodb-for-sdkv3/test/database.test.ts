@@ -45,7 +45,7 @@ describe("update", () => {
     );
 
     // WHEN
-    const storedUpdates = await client.getUpdates(docName);
+    const { updates: storedUpdates } = await client.getUpdates(docName);
     const remoteYDoc = new Y.Doc();
     storedUpdates.forEach((update) => {
       Y.applyUpdate(remoteYDoc, update);
@@ -70,12 +70,13 @@ describe("update", () => {
       updates.map((update, i) => client.putUpdate(docName, i, update))
     );
 
-    // WHEN delete 99 items (index 1 ~ 99)
-    await client.deleteUpdatesRange(docName, 1, 100);
-    const storedUpdates = await client.getUpdates(docName);
+    // WHEN
+    const { deleteUpdates } = await client.getUpdates(docName);
+    await deleteUpdates();
+    const { updates: storedUpdates } = await client.getUpdates(docName);
 
     // THEN
-    expect(storedUpdates).toHaveLength(1);
+    expect(storedUpdates).toHaveLength(0);
   });
 
   test("getCurrentUpdateClock", async () => {
@@ -162,7 +163,7 @@ describe("document", () => {
     // WHEN
     await client.deleteDocument(docName);
     const stateVectorItem = await client.getStateVector(docName);
-    const updateItems = await client.getUpdates(docName);
+    const { updates: updateItems } = await client.getUpdates(docName);
     const metas = await client.getMetas(docName);
 
     // THEN

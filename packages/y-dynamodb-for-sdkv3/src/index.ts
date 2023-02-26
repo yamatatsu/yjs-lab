@@ -31,11 +31,12 @@ const flushDocument = async (
   client: YDynamoDBClient,
   docName: string,
   stateAsUpdate: Uint8Array,
-  stateVector: Uint8Array
+  stateVector: Uint8Array,
+  deleteUpdates: () => Promise<void>
 ): Promise<number> => {
   const clock = await storeUpdate(client, docName, stateAsUpdate);
   await client.putStateVector(docName, stateVector, clock);
-  await client.deleteUpdatesRange(docName, 0, clock);
+  await deleteUpdates();
   return clock;
 };
 
@@ -76,11 +77,11 @@ export default class DynamodbPersistence {
 
   getYDoc(docName: string): Promise<Y.Doc> {
     return this.transact(async () => {
-      const updates = await this.client.getUpdates(docName);
+      const { updates, deleteUpdates } = await this.client.getUpdates(docName);
 
       const { ydoc, update, sv } = mergeUpdates(updates);
       if (updates.length > PREFERRED_TRIM_SIZE) {
-        await flushDocument(this.client, docName, update, sv);
+        await flushDocument(this.client, docName, update, sv, deleteUpdates);
       }
       return ydoc;
     });
@@ -95,9 +96,9 @@ export default class DynamodbPersistence {
    */
   flushDocument(docName: string): Promise<number> {
     return this.transact(async () => {
-      const updates = await this.client.getUpdates(docName);
+      const { updates, deleteUpdates } = await this.client.getUpdates(docName);
       const { update, sv } = mergeUpdates(updates);
-      return flushDocument(this.client, docName, update, sv);
+      return flushDocument(this.client, docName, update, sv, deleteUpdates);
     });
   }
 
@@ -113,9 +114,11 @@ export default class DynamodbPersistence {
         return sv;
       } else {
         // current state vector is outdated
-        const updates = await this.client.getUpdates(docName);
+        const { updates, deleteUpdates } = await this.client.getUpdates(
+          docName
+        );
         const { update, sv } = mergeUpdates(updates);
-        await flushDocument(this.client, docName, update, sv);
+        await flushDocument(this.client, docName, update, sv, deleteUpdates);
         return sv;
       }
     });

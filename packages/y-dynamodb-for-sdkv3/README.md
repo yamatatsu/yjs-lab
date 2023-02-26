@@ -1,4 +1,4 @@
-- [ ] There are possibility `flushDocument` deletes the updates it is not flushed.
+- [x] There are possibility `flushDocument` deletes the updates it is not flushed.
   - Flushed updates and deleted updates should be same items array.
 - [ ] There are possibility to rewrite same clock with different update.
   - We should use atomic counter.

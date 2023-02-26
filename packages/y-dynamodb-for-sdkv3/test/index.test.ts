@@ -46,7 +46,7 @@ const flushUpdatesHelper = (
   updates: Uint8Array[]
 ) =>
   Promise.all(
-    updates.splice(0).map((update) => ddb.storeUpdate(docName, update))
+    updates.slice(0).map((update) => ddb.storeUpdate(docName, update))
   );
 flushUpdatesHelper;
 
@@ -111,17 +111,29 @@ test(
     for (let i = 0; i < N; i++) {
       yarray.insert(0, [i]);
     }
+
+    console.time("flushUpdatesHelper()");
     await flushUpdatesHelper(leveldbPersistence, docName, updates);
+    console.timeEnd("flushUpdatesHelper()");
 
     const ydoc2 = await leveldbPersistence.getYDoc(docName);
     expect(ydoc2.getArray("arr")).toHaveLength(N);
 
+    console.time("leveldbPersistence.flushDocument()");
     await leveldbPersistence.flushDocument(docName);
-    const mergedUpdates = await ydynamoDBClient.getUpdates(docName);
+    console.timeEnd("leveldbPersistence.flushDocument()");
+
+    console.time("ydynamoDBClient.getUpdates(docName)");
+    const { updates: mergedUpdates } = await ydynamoDBClient.getUpdates(
+      docName
+    );
+    console.timeEnd("ydynamoDBClient.getUpdates(docName)");
     expect(mergedUpdates).toHaveLength(1);
 
     // getYDoc still works after flush/merge
+    console.time("leveldbPersistence.getYDoc(docName)");
     const ydoc3 = await leveldbPersistence.getYDoc(docName);
+    console.timeEnd("leveldbPersistence.getYDoc(docName)");
     expect(ydoc3.getArray("arr")).toHaveLength(N);
 
     // test if state vector is properly generated
@@ -131,10 +143,15 @@ test(
 
     // add new update so that sv needs to be updated
     ydoc1.getArray("arr").insert(0, ["new"]);
+    console.time("flushUpdatesHelper()");
     await flushUpdatesHelper(leveldbPersistence, docName, updates);
+    console.timeEnd("flushUpdatesHelper()");
+
+    console.time("leveldbPersistence.getStateVector(docName)");
     await expect(leveldbPersistence.getStateVector(docName)).resolves.toEqual(
       Y.encodeStateVector(ydoc1)
     );
+    console.timeEnd("leveldbPersistence.getStateVector(docName)");
   },
   1000 * 10
 );

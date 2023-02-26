@@ -14,15 +14,20 @@ import {
 import * as buffer from "lib0/buffer";
 import { stateVectorEncoding, valueEncoding } from "./encoding";
 
+type DynamodbItem = {
+  ykeysort: AttributeValue.SMember;
+  value: AttributeValue.BMember;
+};
+
 const createUpdateKey = (clock?: number): string =>
   `update:${clock?.toString().padStart(64, "0") ?? ""}`;
 const createMetaKey = (metaKey: string): string => `meta:${metaKey}`;
 const createStateVectorKey = (): string => "sv";
 
-type DynamodbItem = {
-  ykeysort: AttributeValue.SMember;
-  value: AttributeValue.BMember;
-};
+const getClock = (item: DynamodbItem): number =>
+  Number(item.ykeysort.S.replace("update:", ""));
+const getMetaKey = (item: DynamodbItem): string =>
+  item.ykeysort.S.replace("meta:", "");
 
 /**
  * This class concealing the schema of database.
@@ -73,11 +78,16 @@ export default class YDynamoDBClient {
   /**
    * Get all document updates for a specific document.
    */
-  async getUpdates(docName: string): Promise<Uint8Array[]> {
+  async getUpdates(
+    docName: string
+  ): Promise<{ updates: Uint8Array[]; deleteUpdates: () => Promise<void> }> {
     const items = await this.query({
       ...this.createBeginsWithQueryInput(docName, createUpdateKey()),
     });
-    return items.map((item) => item.value.B);
+    return {
+      updates: items.map((item) => item.value.B),
+      deleteUpdates: () => this.clearItems(docName, items),
+    };
   }
 
   /**
@@ -92,33 +102,7 @@ export default class YDynamoDBClient {
 
     if (!items[0]?.ykeysort) return -1;
 
-    return Number(items[0].ykeysort.S.replace("update:", ""));
-  }
-
-  /**
-   * @param docName
-   * @param from Greater than or equal
-   * @param to lower than (not equal)
-   */
-  async deleteUpdatesRange(
-    docName: string,
-    from: number,
-    to: number
-  ): Promise<void> {
-    if (from >= to) {
-      return;
-    }
-
-    const items = await this.query({
-      ...this.createBetweenQueryInput(
-        docName,
-        createUpdateKey(from),
-        createUpdateKey(to - 1)
-      ),
-      ProjectionExpression: "ykeysort",
-    });
-
-    await this.clearItems(docName, items);
+    return getClock(items[0]);
   }
 
   // Meta
@@ -133,11 +117,7 @@ export default class YDynamoDBClient {
     });
     const metas = new Map();
     items.forEach((item) => {
-      metas.set(
-        // TODO: refactoring
-        item.ykeysort.S.replace("meta:", ""),
-        buffer.decodeAny(item.value.B)
-      );
+      metas.set(getMetaKey(item), buffer.decodeAny(item.value.B));
     });
     return metas;
   }
@@ -190,23 +170,6 @@ export default class YDynamoDBClient {
         )
       )
     );
-  }
-
-  private createBetweenQueryInput(
-    docName: string,
-    from: string,
-    to: string
-  ): QueryInput {
-    return {
-      TableName: this.tableName,
-      KeyConditionExpression:
-        "ydocname = :docName and ykeysort between :id1 and :id2",
-      ExpressionAttributeValues: {
-        ":docName": { S: v1PKey(docName) },
-        ":id1": { S: from },
-        ":id2": { S: to },
-      },
-    };
   }
 
   private createBeginsWithQueryInput(
