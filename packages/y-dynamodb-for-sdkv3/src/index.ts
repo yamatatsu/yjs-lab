@@ -125,7 +125,6 @@ export default class DynamodbPersistence {
 
   clearDocument(docName: string): Promise<void> {
     return this.transact(async () => {
-      await this.client.deleteStateVector(docName);
       await this.client.deleteDocument(docName);
     });
   }

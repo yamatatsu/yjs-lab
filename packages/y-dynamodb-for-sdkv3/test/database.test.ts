@@ -28,21 +28,6 @@ describe("stateVector", () => {
     expect(stateVectorData.sv).toEqual(sv);
     expect(stateVectorData.clock).toBe(0);
   });
-
-  test("put and delete", async () => {
-    // GIVEN
-    const doc = new Y.Doc();
-    const sv = Y.encodeStateVector(doc);
-    await client.putStateVector(docName, sv, 0);
-
-    // WHEN
-    await client.deleteStateVector(docName);
-    const stateVectorData = await client.getStateVector(docName);
-
-    // THEN
-    expect(stateVectorData.sv).toBeNull();
-    expect(stateVectorData.clock).toBe(-1);
-  });
 });
 
 describe("update", () => {

@@ -64,10 +64,6 @@ export default class YDynamoDBClient {
     return stateVectorEncoding.decode(item.value.B);
   }
 
-  deleteStateVector(docName: string): Promise<void> {
-    return this.delete(docName, createStateVectorKey());
-  }
-
   // Update
 
   putUpdate(docName: string, clock: number, update: Uint8Array): Promise<void> {
