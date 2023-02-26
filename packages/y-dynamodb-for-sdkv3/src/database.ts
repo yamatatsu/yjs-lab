@@ -18,7 +18,7 @@ import * as buffer from "lib0/buffer";
 import { stateVectorEncoding, valueEncoding } from "./encoding";
 
 type DynamodbItem = {
-  ykeysort: AttributeValue.SMember;
+  sortKey: AttributeValue.SMember;
   value: AttributeValue.BMember;
 };
 
@@ -29,7 +29,7 @@ const createStateVectorKey = (): string => "sv";
 const createUpdateClockKey = (): string => "updateClock";
 
 const getMetaKey = (item: DynamodbItem): string =>
-  item.ykeysort.S.replace("meta:", "");
+  item.sortKey.S.replace("meta:", "");
 
 /**
  * This class concealing the schema of database.
@@ -99,8 +99,8 @@ export default class YDynamoDBClient {
       TableName: this.tableName,
       ReturnValues: "ALL_NEW",
       Key: {
-        ydocname: { S: v1PKey(docName) },
-        ykeysort: { S: createUpdateClockKey() },
+        docName: { S: v1PKey(docName) },
+        sortKey: { S: createUpdateClockKey() },
       },
       UpdateExpression: "ADD #clock :incr",
       ExpressionAttributeNames: {
@@ -125,8 +125,8 @@ export default class YDynamoDBClient {
     const input: GetItemInput = {
       TableName: this.tableName,
       Key: {
-        ydocname: { S: v1PKey(docName) },
-        ykeysort: { S: createUpdateClockKey() },
+        docName: { S: v1PKey(docName) },
+        sortKey: { S: createUpdateClockKey() },
       },
     };
 
@@ -171,7 +171,7 @@ export default class YDynamoDBClient {
   async deleteDocument(docName: string): Promise<void> {
     const items = await this.query({
       ...this.createQueryAllInput(docName),
-      ProjectionExpression: "ykeysort",
+      ProjectionExpression: "sortKey",
     });
     await this.clearItems(docName, items);
   }
@@ -189,8 +189,8 @@ export default class YDynamoDBClient {
       (item): WriteRequest => ({
         DeleteRequest: {
           Key: {
-            ydocname: { S: v1PKey(docName) },
-            ykeysort: { S: item.ykeysort.S },
+            docName: { S: v1PKey(docName) },
+            sortKey: { S: item.sortKey.S },
           },
         },
       })
@@ -214,7 +214,7 @@ export default class YDynamoDBClient {
     return {
       TableName: this.tableName,
       KeyConditionExpression:
-        "ydocname = :docName and begins_with(ykeysort, :id)",
+        "docName = :docName and begins_with(sortKey, :id)",
       ExpressionAttributeValues: {
         ":docName": { S: v1PKey(docName) },
         ":id": { S: prefix },
@@ -225,7 +225,7 @@ export default class YDynamoDBClient {
   private createQueryAllInput(docName: string): QueryInput {
     return {
       TableName: this.tableName,
-      KeyConditionExpression: "ydocname = :docName",
+      KeyConditionExpression: "docName = :docName",
       ExpressionAttributeValues: {
         ":docName": { S: v1PKey(docName) },
       },
@@ -244,8 +244,8 @@ export default class YDynamoDBClient {
     const input: GetItemInput = {
       TableName: this.tableName,
       Key: {
-        ydocname: { S: v1PKey(docName) },
-        ykeysort: { S: key },
+        docName: { S: v1PKey(docName) },
+        sortKey: { S: key },
       },
     };
 
@@ -265,8 +265,8 @@ export default class YDynamoDBClient {
       TableName: this.tableName,
       ReturnConsumedCapacity: "TOTAL",
       Item: {
-        ydocname: { S: v1PKey(docName) },
-        ykeysort: { S: key },
+        docName: { S: v1PKey(docName) },
+        sortKey: { S: key },
         value: { B: valueEncoding.encode(val) },
       },
     };
@@ -285,8 +285,8 @@ export default class YDynamoDBClient {
   private async delete(docName: string, key: string): Promise<void> {
     const input: DeleteItemInput = {
       Key: {
-        ydocname: { S: v1PKey(docName) },
-        ykeysort: { S: key },
+        docName: { S: v1PKey(docName) },
+        sortKey: { S: key },
       },
       TableName: this.tableName,
     };

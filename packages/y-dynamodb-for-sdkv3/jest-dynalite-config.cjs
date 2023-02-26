@@ -3,12 +3,12 @@ module.exports = {
     {
       TableName: "y-dynamodb",
       KeySchema: [
-        { AttributeName: "ydocname", KeyType: "HASH" },
-        { AttributeName: "ykeysort", KeyType: "RANGE" },
+        { AttributeName: "docName", KeyType: "HASH" },
+        { AttributeName: "sortKey", KeyType: "RANGE" },
       ],
       AttributeDefinitions: [
-        { AttributeName: "ydocname", AttributeType: "S" },
-        { AttributeName: "ykeysort", AttributeType: "S" },
+        { AttributeName: "docName", AttributeType: "S" },
+        { AttributeName: "sortKey", AttributeType: "S" },
       ],
       ProvisionedThroughput: { ReadCapacityUnits: 1, WriteCapacityUnits: 1 },
     },
