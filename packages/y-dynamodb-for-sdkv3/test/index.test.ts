@@ -136,53 +136,49 @@ test(
       Y.encodeStateVector(ydoc1)
     );
   },
-  1000 * 60 * 5
+  1000 * 10
 );
 
-test(
-  "testDiff",
-  async () => {
-    const N = PREFERRED_TRIM_SIZE * 2; // primes are awesome - ensure that the document is at least flushed once
-    const docName = "testDiff";
-    const ydoc1 = new Y.Doc();
-    ydoc1.clientID = 0; // so we can check the state vector
-    const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
-      tableName,
-    });
+test("testDiff", async () => {
+  const N = PREFERRED_TRIM_SIZE * 2; // primes are awesome - ensure that the document is at least flushed once
+  const docName = "testDiff";
+  const ydoc1 = new Y.Doc();
+  ydoc1.clientID = 0; // so we can check the state vector
+  const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+    tableName,
+  });
 
-    const updates: Uint8Array[] = [];
-    ydoc1.on("update", (update: Uint8Array) => {
-      updates.push(update);
-    });
+  const updates: Uint8Array[] = [];
+  ydoc1.on("update", (update: Uint8Array) => {
+    updates.push(update);
+  });
 
-    const yarray = ydoc1.getArray("arr");
-    // create N changes
-    for (let i = 0; i < N; i++) {
-      yarray.insert(0, [i]);
-    }
-    await flushUpdatesHelper(leveldbPersistence, docName, updates);
+  const yarray = ydoc1.getArray("arr");
+  // create N changes
+  for (let i = 0; i < N; i++) {
+    yarray.insert(0, [i]);
+  }
+  await flushUpdatesHelper(leveldbPersistence, docName, updates);
 
-    // create partially merged doc
-    const ydoc2 = await leveldbPersistence.getYDoc(docName);
+  // create partially merged doc
+  const ydoc2 = await leveldbPersistence.getYDoc(docName);
 
-    // another N updates
-    for (let i = 0; i < N; i++) {
-      yarray.insert(0, [i]);
-    }
-    await flushUpdatesHelper(leveldbPersistence, docName, updates);
+  // another N updates
+  for (let i = 0; i < N; i++) {
+    yarray.insert(0, [i]);
+  }
+  await flushUpdatesHelper(leveldbPersistence, docName, updates);
 
-    // apply diff to doc
-    const diffUpdate = await leveldbPersistence.getDiff(
-      docName,
-      Y.encodeStateVector(ydoc2)
-    );
-    Y.applyUpdate(ydoc2, diffUpdate);
+  // apply diff to doc
+  const diffUpdate = await leveldbPersistence.getDiff(
+    docName,
+    Y.encodeStateVector(ydoc2)
+  );
+  Y.applyUpdate(ydoc2, diffUpdate);
 
-    expect(ydoc1.getArray("arr").length).toBe(N * 2);
-    expect(ydoc2.getArray("arr").length).toBe(N * 2);
-  },
-  1000 * 60
-);
+  expect(ydoc1.getArray("arr").length).toBe(N * 2);
+  expect(ydoc2.getArray("arr").length).toBe(N * 2);
+});
 
 test("testMetas", async () => {
   const docName = "testMetas";

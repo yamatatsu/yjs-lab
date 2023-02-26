@@ -90,6 +90,7 @@ export default class YDynamoDBClient {
   async getCurrentUpdateClock(docName: string): Promise<number> {
     const items = await this.query({
       ...this.createBeginsWithQueryInput(docName, createUpdateKey()),
+      Limit: 1,
       ScanIndexForward: false,
     });
 
