@@ -78,27 +78,15 @@ describe("update", () => {
     // THEN
     expect(storedUpdates).toHaveLength(0);
   });
+});
 
-  test("getCurrentUpdateClock", async () => {
-    // GIVEN
-    const doc = new Y.Doc();
-    const updates: Uint8Array[] = [];
-    doc.on("update", (update: Uint8Array) => {
-      updates.push(update);
-    });
-    // 100 items
-    for (let i = 0; i < 100; i++) {
-      doc.getArray("myArray").push([i]);
-    }
-    await Promise.all(
-      updates.map((update, i) => client.putUpdate(docName, i, update))
-    );
-
-    // WHEN
-    const clock = await client.getCurrentUpdateClock(docName);
-
-    // THEN
-    expect(clock).toBe(100);
+describe("updateClock", () => {
+  test("get update-clock", async () => {
+    await expect(client.getCurrentUpdateClock(docName)).resolves.toBe(null);
+    await expect(client.getNextUpdateClock(docName)).resolves.toBe(1);
+    await expect(client.getNextUpdateClock(docName)).resolves.toBe(2);
+    await expect(client.getNextUpdateClock(docName)).resolves.toBe(3);
+    await expect(client.getCurrentUpdateClock(docName)).resolves.toBe(3);
   });
 });
 

@@ -10,6 +10,9 @@ import {
   QueryInput,
   WriteRequest,
   AttributeValue,
+  UpdateItemInput,
+  GetItemInput,
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import * as buffer from "lib0/buffer";
 import { stateVectorEncoding, valueEncoding } from "./encoding";
@@ -23,9 +26,8 @@ const createUpdateKey = (clock?: number): string =>
   `update:${clock?.toString().padStart(64, "0") ?? ""}`;
 const createMetaKey = (metaKey: string): string => `meta:${metaKey}`;
 const createStateVectorKey = (): string => "sv";
+const createUpdateClockKey = (): string => "updateClock";
 
-const getClock = (item: DynamodbItem): number =>
-  Number(item.ykeysort.S.replace("update:", ""));
 const getMetaKey = (item: DynamodbItem): string =>
   item.ykeysort.S.replace("meta:", "");
 
@@ -72,7 +74,7 @@ export default class YDynamoDBClient {
   // Update
 
   putUpdate(docName: string, clock: number, update: Uint8Array): Promise<void> {
-    return this.put(docName, createUpdateKey(clock + 1), update);
+    return this.put(docName, createUpdateKey(clock), update);
   }
 
   /**
@@ -90,19 +92,52 @@ export default class YDynamoDBClient {
     };
   }
 
-  /**
-   * @return Returns -1 if this document doesn't exist yet
-   */
-  async getCurrentUpdateClock(docName: string): Promise<number> {
-    const items = await this.query({
-      ...this.createBeginsWithQueryInput(docName, createUpdateKey()),
-      Limit: 1,
-      ScanIndexForward: false,
-    });
+  // updateClock
 
-    if (!items[0]?.ykeysort) return -1;
+  async getNextUpdateClock(docName: string): Promise<number> {
+    const input: UpdateItemInput = {
+      TableName: this.tableName,
+      ReturnValues: "ALL_NEW",
+      Key: {
+        ydocname: { S: v1PKey(docName) },
+        ykeysort: { S: createUpdateClockKey() },
+      },
+      UpdateExpression: "ADD #clock :incr",
+      ExpressionAttributeNames: {
+        "#clock": "clock",
+      },
+      ExpressionAttributeValues: {
+        ":incr": { N: "1" },
+      },
+    };
 
-    return getClock(items[0]);
+    const data = await this.client.send(new UpdateItemCommand(input));
+
+    const clock = data.Attributes?.clock.N;
+    if (!clock) {
+      throw new Error("No new item");
+    }
+
+    return Number(clock);
+  }
+
+  async getCurrentUpdateClock(docName: string): Promise<number | null> {
+    const input: GetItemInput = {
+      TableName: this.tableName,
+      Key: {
+        ydocname: { S: v1PKey(docName) },
+        ykeysort: { S: createUpdateClockKey() },
+      },
+    };
+
+    const data = await this.client.send(new GetItemCommand(input));
+
+    const clock = data.Item?.clock.N;
+    if (!clock) {
+      return null;
+    }
+
+    return Number(clock);
   }
 
   // Meta
@@ -206,15 +241,15 @@ export default class YDynamoDBClient {
     docName: string,
     key: string
   ): Promise<DynamodbItem | null> {
-    const params = {
+    const input: GetItemInput = {
+      TableName: this.tableName,
       Key: {
         ydocname: { S: v1PKey(docName) },
         ykeysort: { S: key },
       },
-      TableName: this.tableName,
     };
 
-    const data = await this.client.send(new GetItemCommand(params));
+    const data = await this.client.send(new GetItemCommand(input));
     if (!data.Item) {
       return null;
     }

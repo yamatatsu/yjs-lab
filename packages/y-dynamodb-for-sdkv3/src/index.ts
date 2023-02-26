@@ -48,16 +48,18 @@ const storeUpdate = async (
   docName: string,
   update: Uint8Array
 ): Promise<number> => {
-  const clock = await client.getCurrentUpdateClock(docName);
-  if (clock === -1) {
+  const clock = await client.getNextUpdateClock(docName);
+
+  // first time for storeUpdate to the doc
+  if (clock === 1) {
     // make sure that a state vector is always written, so we can search for available documents
     const ydoc = new Y.Doc();
     Y.applyUpdate(ydoc, update);
     const sv = Y.encodeStateVector(ydoc);
-    await client.putStateVector(docName, sv, 0);
+    await client.putStateVector(docName, sv, clock);
   }
   await client.putUpdate(docName, clock, update);
-  return clock + 1;
+  return clock;
 };
 
 type Config = {
@@ -105,7 +107,7 @@ export default class DynamodbPersistence {
   getStateVector(docName: string): Promise<Uint8Array> {
     return this.transact(async () => {
       const { clock, sv } = await this.client.getStateVector(docName);
-      let curClock = -1;
+      let curClock: number | null = -1;
       /* istanbul ignore next */
       if (sv !== null) {
         curClock = await this.client.getCurrentUpdateClock(docName);
