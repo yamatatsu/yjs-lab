@@ -149,18 +149,12 @@ export default class DynamodbPersistence {
   // Execute an transaction on a database. This will ensure that other processes are currently not writing.
   private currentTransaction: Promise<any> = Promise.resolve();
   private async transact(f: TransactCallback) {
-    const currTr = this.currentTransaction;
-    this.currentTransaction = (async () => {
-      await currTr;
-      let res = /** @type {any} */ null;
-      try {
-        res = await f();
-      } catch (err) {
-        /* istanbul ignore next */
-        console.warn("Error during y-leveldb transaction", err);
-      }
-      return res;
-    })();
+    this.currentTransaction = this.currentTransaction
+      .then(() => f())
+      .catch((err) => {
+        console.warn("Error during y-dynamodb transaction", err);
+      });
+
     return this.currentTransaction;
   }
 }
