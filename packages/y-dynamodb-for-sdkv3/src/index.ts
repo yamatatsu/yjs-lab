@@ -25,7 +25,7 @@ const mergeUpdates = (
 };
 
 /**
- * returns the clock of the flushed doc
+ * @returns the clock of the flushed doc
  */
 const flushDocument = async (
   client: YDynamoDBClient,
@@ -40,7 +40,7 @@ const flushDocument = async (
 };
 
 /**
- * Returns the clock of the stored update
+ * @returns the clock of the stored update
  */
 const storeUpdate = async (
   client: YDynamoDBClient,
@@ -90,6 +90,9 @@ export default class DynamodbPersistence {
     return this.transact(() => storeUpdate(this.client, docName, update));
   }
 
+  /**
+   * @returns the clock of the flushed doc
+   */
   flushDocument(docName: string): Promise<number> {
     return this.transact(async () => {
       const updates = await this.client.getUpdates(docName);
