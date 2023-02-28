@@ -5,4 +5,5 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest",
   },
   preset: "jest-dynalite",
+  collectCoverage: true,
 };
