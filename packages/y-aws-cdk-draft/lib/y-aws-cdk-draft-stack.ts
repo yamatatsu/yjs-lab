@@ -18,6 +18,12 @@ export class WebSocketApiStack extends cdk.Stack {
       partitionKey: { name: "pk", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "sk", type: dynamodb.AttributeType.STRING },
     });
+    const yDynamodbTable = new dynamodb.Table(this, "YDynamodbTable", {
+      tableName: "y-dynamodb",
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      partitionKey: { name: "docName", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "sortKey", type: dynamodb.AttributeType.STRING },
+    });
 
     const authorizerHandler = new NodejsFunction(this, "AuthorizerHandler", {
       runtime: lambda.Runtime.NODEJS_18_X,
@@ -50,7 +56,9 @@ export class WebSocketApiStack extends cdk.Stack {
 
     table.grantWriteData(connectHandler);
     table.grantWriteData(disconnectHandler);
-    table.grantReadWriteData(defaultHandler);
+    table.grantReadData(defaultHandler);
+    yDynamodbTable.grantReadWriteData(connectHandler);
+    yDynamodbTable.grantReadWriteData(defaultHandler);
 
     const webSocketApi = new apig.WebSocketApi(this, "WebSocketApi", {
       connectRouteOptions: {

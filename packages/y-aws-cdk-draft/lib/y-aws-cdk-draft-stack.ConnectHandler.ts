@@ -1,4 +1,4 @@
-import { DB } from "./db/dynamodb";
+import Connection from "./db/connection";
 import { Handler, getConnectionId, getDocId } from "./utils";
 
 export const handler: Handler = async (event) => {
@@ -7,7 +7,7 @@ export const handler: Handler = async (event) => {
   const connectionId = getConnectionId(event);
   const docId = getDocId(event);
 
-  await DB.put({
+  await Connection.put({
     Item: { pk: docId, sk: connectionId, docId, connectionId },
   });
 

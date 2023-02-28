@@ -34,6 +34,10 @@
     "@aws-sdk/types": "^3.272.0",
     "@aws-sdk/util-dynamodb": "^3.272.0",
     "aws-cdk-lib": "2.64.0",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "lib0": "^0.2.62",
+    "y-dynamodb-for-sdkv3": "*",
+    "y-protocols": "^1.0.5",
+    "yjs": "^13.5.45"
   }
 }
