@@ -2,3 +2,10 @@
   - Flushed updates and deleted updates should be same items array.
 - [x] There are possibility to rewrite same clock with different update.
   - We should use atomic counter.
+- [ ] There are possibility to read a defective document when `flushDocument` is used.
+  - Because the consistency of DynamoDB is not sure order of write operations.
+  - SOLUTION: splitting `flushDocument` to two phases
+    - PHASE 1: put a merged updates item and a mark for deletion
+    - PHASE 1: delete merged items by the mark
+  - SOLUTION: using DynamoDB Stream
+- [ ] use batch write
