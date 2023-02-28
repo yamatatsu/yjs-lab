@@ -65,7 +65,7 @@ const storeUpdate = async (
 type Config = {
   tableName: string;
 };
-type TransactCallback = () => Promise<any>;
+type TransactCallback<T> = () => Promise<T>;
 
 export default class DynamodbPersistence {
   private readonly client: YDynamoDBClient;
@@ -77,7 +77,7 @@ export default class DynamodbPersistence {
     this.client = new YDynamoDBClient(db, config.tableName);
   }
 
-  getYDoc(docName: string): Promise<Y.Doc> {
+  async getYDoc(docName: string): Promise<Y.Doc | null> {
     return this.transact(async () => {
       const { updates, deleteUpdates } = await this.client.getUpdates(docName);
 
@@ -89,22 +89,19 @@ export default class DynamodbPersistence {
     });
   }
 
-  storeUpdate(docName: string, update: Uint8Array): Promise<void> {
-    return this.transact(() => storeUpdate(this.client, docName, update));
+  async storeUpdate(docName: string, update: Uint8Array): Promise<void> {
+    await this.transact(() => storeUpdate(this.client, docName, update));
   }
 
-  /**
-   * @returns the clock of the flushed doc
-   */
-  flushDocument(docName: string): Promise<number> {
-    return this.transact(async () => {
+  async flushDocument(docName: string): Promise<void> {
+    await this.transact(async () => {
       const { updates, deleteUpdates } = await this.client.getUpdates(docName);
       const { update, sv } = mergeUpdates(updates);
-      return flushDocument(this.client, docName, update, sv, deleteUpdates);
+      await flushDocument(this.client, docName, update, sv, deleteUpdates);
     });
   }
 
-  getStateVector(docName: string): Promise<Uint8Array> {
+  async getStateVector(docName: string): Promise<Uint8Array | null> {
     return this.transact(async () => {
       const { clock, sv } = await this.client.getStateVector(docName);
       let curClock: number | null = -1;
@@ -126,40 +123,43 @@ export default class DynamodbPersistence {
     });
   }
 
-  async getDiff(docName: string, stateVector: Uint8Array): Promise<Uint8Array> {
+  async getDiff(
+    docName: string,
+    stateVector: Uint8Array
+  ): Promise<Uint8Array | null> {
     const ydoc = await this.getYDoc(docName);
+    if (!ydoc) return null;
     return Y.encodeStateAsUpdate(ydoc, stateVector);
   }
 
-  clearDocument(docName: string): Promise<void> {
-    return this.transact(async () => {
-      await this.client.deleteDocument(docName);
-    });
+  async clearDocument(docName: string): Promise<void> {
+    await this.transact(async () => this.client.deleteDocument(docName));
   }
 
-  setMeta(docName: string, metaKey: string, value: any): Promise<void> {
-    return this.transact(() => this.client.putMeta(docName, metaKey, value));
+  async setMeta(docName: string, metaKey: string, value: any): Promise<void> {
+    await this.transact(() => this.client.putMeta(docName, metaKey, value));
   }
 
-  getMeta(docName: string, metaKey: string): Promise<any> {
+  async getMeta(docName: string, metaKey: string): Promise<any> {
     return this.transact(() => this.client.getMeta(docName, metaKey));
   }
 
-  getMetas(docName: string): Promise<Map<string, any>> {
+  async getMetas(docName: string): Promise<Map<string, any> | null> {
     return this.transact(() => this.client.getMetas(docName));
   }
 
-  delMeta(docName: string, metaKey: string): Promise<void> {
-    return this.transact(() => this.client.deleteMeta(docName, metaKey));
+  async delMeta(docName: string, metaKey: string): Promise<void> {
+    await this.transact(() => this.client.deleteMeta(docName, metaKey));
   }
 
   // Execute an transaction on a database. This will ensure that other processes are currently not writing.
   private currentTransaction: Promise<any> = Promise.resolve();
-  private async transact(f: TransactCallback) {
+  private async transact<T>(f: TransactCallback<T>): Promise<T | null> {
     this.currentTransaction = this.currentTransaction
       .then(() => f())
       .catch((err) => {
         console.warn("Error during y-dynamodb transaction", err);
+        return null;
       });
 
     return this.currentTransaction;
