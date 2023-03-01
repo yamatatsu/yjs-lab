@@ -43,15 +43,20 @@ export const handler: Handler = async (event) => {
    */
   switch (readMessageType(decoder)) {
     case "syncStep1": {
-      const encoder = encoding.createEncoder();
-      encoding.writeVarUint(encoder, messageSync);
-      const doc = (await persistence.getYDoc(docId)) ?? new Y.Doc();
+      const doc = await persistence.getYDoc(docId);
 
-      syncProtocol.readSyncStep1(decoder, encoder, doc);
       await wsClient.reply(
-        toBase64(encoding.toUint8Array(encoder)),
+        createMessageForSyncClient(doc, decoder),
         getConnectionId(event)
       );
+
+      if (!doc) break;
+
+      await wsClient.reply(
+        createMessageForSyncServer(doc),
+        getConnectionId(event)
+      );
+
       break;
     }
     case "syncStep2":
@@ -100,4 +105,23 @@ const readMessageType = (decoder: decoding.Decoder) => {
     }
   }
   throw new Error("Unknown message type");
+};
+
+const createMessageForSyncClient = (
+  doc: Y.Doc | null,
+  decoder: decoding.Decoder
+): string => {
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, messageSync);
+
+  syncProtocol.readSyncStep1(decoder, encoder, doc ?? new Y.Doc());
+
+  return toBase64(encoding.toUint8Array(encoder));
+};
+
+const createMessageForSyncServer = (doc: Y.Doc): string => {
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, messageSync);
+  syncProtocol.writeSyncStep1(encoder, doc);
+  return toBase64(encoding.toUint8Array(encoder));
 };

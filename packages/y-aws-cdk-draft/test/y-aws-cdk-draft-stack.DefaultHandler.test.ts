@@ -69,37 +69,66 @@ describe("sync step1", () => {
     });
   });
 
-  test("update clientDoc with replied", async () => {
+  test("replied data for sync client", async () => {
     await subject(body);
 
     const calls = apiGatewayManagementApiMock.commandCalls(
       PostToConnectionCommand
     );
-    expect(calls).toHaveLength(1);
+    expect(calls).toHaveLength(2);
+
+    // get first reply
     const input = calls[0].args[0].input;
     expect(input).toEqual({
       ConnectionId: "connectionId_0",
       Data: expect.any(Buffer),
     });
 
+    // decode replied data and update clientDoc
     const data = fromBase64(input.Data!.toString());
     const decoder = decoding.createDecoder(data);
-
-    const messageType = decoding.readVarUint(decoder);
-    expect(messageType).toBe(messageSync);
-
+    const protocolMessageType = decoding.readVarUint(decoder);
     const syncMessageType = syncProtocol.readSyncMessage(
       decoder,
       encoding.createEncoder(),
       clientDoc,
       {}
     );
-    expect(syncMessageType).toBe(messageYjsSyncStep2);
 
+    expect(protocolMessageType).toBe(messageSync);
+    expect(syncMessageType).toBe(messageYjsSyncStep2);
     expect(clientDoc.getMap("myMap").toJSON()).toEqual({
       key_a: "val_a",
       key_b: "val_b",
     });
+  });
+
+  test("replied data for sync server", async () => {
+    await subject(body);
+
+    const calls = apiGatewayManagementApiMock.commandCalls(
+      PostToConnectionCommand
+    );
+    expect(calls).toHaveLength(2);
+
+    // get second reply
+    const input = calls[1].args[0].input;
+    expect(input).toEqual({
+      ConnectionId: "connectionId_0",
+      Data: expect.any(Buffer),
+    });
+
+    // decode replied data
+    const data = fromBase64(input.Data!.toString());
+    const decoder = decoding.createDecoder(data);
+    const protocolMessageType = decoding.readVarUint(decoder);
+    const syncMessageType = decoding.readVarUint(decoder);
+    const stateVector = decoding.readVarUint8Array(decoder);
+
+    expect(protocolMessageType).toBe(messageSync);
+    expect(syncMessageType).toBe(messageYjsSyncStep1);
+    const stateVectorOfServerDoc = await persistence.getStateVector(docId);
+    expect(stateVector).toEqual(stateVectorOfServerDoc);
   });
 
   test("the client side update is not stored", async () => {
@@ -146,36 +175,44 @@ describe("sync step2", () => {
     });
   });
 
-  test("broadcasting the update", async () => {
+  test("broadcasted datum", async () => {
     await subject(body);
 
     const calls = apiGatewayManagementApiMock.commandCalls(
       PostToConnectionCommand
     );
+
+    // Two broadcasted datum will be captured.
     expect(calls.length).toBe(2);
-    expect(calls[0].args[0].input).toEqual({
+    const inputs = calls.map((call) => call.args[0].input);
+    expect(inputs[0]).toEqual({
       ConnectionId: "connectionId_1",
       Data: expect.any(Buffer),
     });
-    expect(calls[1].args[0].input).toEqual({
+    expect(inputs[1]).toEqual({
       ConnectionId: "connectionId_2",
       Data: expect.any(Buffer),
     });
 
+    // These are same
+    const [data1, data2] = inputs.map((input) =>
+      fromBase64(input.Data!.toString())
+    );
+    expect(data1).toEqual(data2);
+
+    // decode a broadcasted data
     const observingClientDoc = new Y.Doc();
-
-    const data = fromBase64(calls[0].args[0].input.Data!.toString());
-    const decoder = decoding.createDecoder(data);
-
-    const messageType = decoding.readVarUint(decoder);
-    expect(messageType).toBe(messageSync);
-
-    syncProtocol.readSyncMessage(
+    const decoder = decoding.createDecoder(data1);
+    const protocolMessageType = decoding.readVarUint(decoder);
+    const syncMessageType = syncProtocol.readSyncMessage(
       decoder,
       encoding.createEncoder(),
       observingClientDoc,
       {}
     );
+
+    expect(protocolMessageType).toBe(messageSync);
+    expect(syncMessageType).toBe(messageYjsSyncStep2);
     expect(observingClientDoc.getMap("myMap").toJSON()).toEqual({
       key_a: "val_a",
     });
@@ -221,36 +258,44 @@ describe("update", () => {
     });
   });
 
-  test("broadcasting the update", async () => {
+  test("broadcasted datum", async () => {
     await subject(body);
 
     const calls = apiGatewayManagementApiMock.commandCalls(
       PostToConnectionCommand
     );
+
+    // Two broadcasted datum will be captured.
     expect(calls.length).toBe(2);
-    expect(calls[0].args[0].input).toEqual({
+    const inputs = calls.map((call) => call.args[0].input);
+    expect(inputs[0]).toEqual({
       ConnectionId: "connectionId_1",
       Data: expect.any(Buffer),
     });
-    expect(calls[1].args[0].input).toEqual({
+    expect(inputs[1]).toEqual({
       ConnectionId: "connectionId_2",
       Data: expect.any(Buffer),
     });
 
+    // These are same
+    const [data1, data2] = inputs.map((input) =>
+      fromBase64(input.Data!.toString())
+    );
+    expect(data1).toEqual(data2);
+
+    // decode a broadcasted data
     const observingClientDoc = new Y.Doc();
-
-    const data = fromBase64(calls[0].args[0].input.Data!.toString());
-    const decoder = decoding.createDecoder(data);
-
-    const messageType = decoding.readVarUint(decoder);
-    expect(messageType).toBe(messageSync);
-
-    syncProtocol.readSyncMessage(
+    const decoder = decoding.createDecoder(data1);
+    const protocolMessageType = decoding.readVarUint(decoder);
+    const syncMessageType = syncProtocol.readSyncMessage(
       decoder,
       encoding.createEncoder(),
       observingClientDoc,
       {}
     );
+
+    expect(protocolMessageType).toBe(messageSync);
+    expect(syncMessageType).toBe(messageYjsUpdate);
     expect(observingClientDoc.getMap("myMap").toJSON()).toEqual({
       key_a: "val_a",
     });
