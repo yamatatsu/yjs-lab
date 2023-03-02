@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
-import DynamodbPersistence, { PREFERRED_TRIM_SIZE } from "../src";
+import DynamoDBPersistence, { PREFERRED_TRIM_SIZE } from "../src";
 import YDynamoDBClient from "../src/database";
 import * as decoding from "lib0/decoding";
 
@@ -41,7 +41,7 @@ const decodeStateVector = (decodedState: Uint8Array): Map<number, number> =>
  * Flushes all updates to ldb and deletes items from updates array.
  */
 const flushUpdatesHelper = (
-  ddb: DynamodbPersistence,
+  ddb: DynamoDBPersistence,
   docName: string,
   updates: Uint8Array[]
 ) =>
@@ -60,7 +60,7 @@ test("testLeveldbUpdateStorage", async () => {
   const docName = "testLeveldbUpdateStorage";
   const ydoc1 = new Y.Doc();
   ydoc1.clientID = 0; // so we can check the state vector
-  const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+  const leveldbPersistence = new DynamoDBPersistence(dynamoDBClient, {
     tableName,
   });
 
@@ -76,12 +76,12 @@ test("testLeveldbUpdateStorage", async () => {
   await flushUpdatesHelper(leveldbPersistence, docName, updates);
 
   const encodedSv = await leveldbPersistence.getStateVector(docName);
-  const sv = decodeStateVector(encodedSv);
+  const sv = decodeStateVector(encodedSv!);
   expect(sv.size).toBe(1);
   expect(sv.get(0)).toBe(2);
 
   const ydoc2 = await leveldbPersistence.getYDoc(docName);
-  expect(ydoc2.getArray("arr").toArray()).toEqual([2, 1]);
+  expect(ydoc2?.getArray("arr").toArray()).toEqual([2, 1]);
 
   expect((await getAllItems())?.length).toBeGreaterThan(0);
 
@@ -97,7 +97,7 @@ test(
     const docName = "testEncodeManyUpdates";
     const ydoc1 = new Y.Doc();
     ydoc1.clientID = 0; // so we can check the state vector
-    const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+    const leveldbPersistence = new DynamoDBPersistence(dynamoDBClient, {
       tableName,
     });
 
@@ -117,7 +117,7 @@ test(
     console.timeEnd("flushUpdatesHelper()");
 
     const ydoc2 = await leveldbPersistence.getYDoc(docName);
-    expect(ydoc2.getArray("arr")).toHaveLength(N);
+    expect(ydoc2?.getArray("arr")).toHaveLength(N);
 
     console.time("leveldbPersistence.flushDocument()");
     await leveldbPersistence.flushDocument(docName);
@@ -134,7 +134,7 @@ test(
     console.time("leveldbPersistence.getYDoc(docName)");
     const ydoc3 = await leveldbPersistence.getYDoc(docName);
     console.timeEnd("leveldbPersistence.getYDoc(docName)");
-    expect(ydoc3.getArray("arr")).toHaveLength(N);
+    expect(ydoc3?.getArray("arr")).toHaveLength(N);
 
     // test if state vector is properly generated
     await expect(leveldbPersistence.getStateVector(docName)).resolves.toEqual(
@@ -161,7 +161,7 @@ test("testDiff", async () => {
   const docName = "testDiff";
   const ydoc1 = new Y.Doc();
   ydoc1.clientID = 0; // so we can check the state vector
-  const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+  const leveldbPersistence = new DynamoDBPersistence(dynamoDBClient, {
     tableName,
   });
 
@@ -189,17 +189,17 @@ test("testDiff", async () => {
   // apply diff to doc
   const diffUpdate = await leveldbPersistence.getDiff(
     docName,
-    Y.encodeStateVector(ydoc2)
+    Y.encodeStateVector(ydoc2!)
   );
-  Y.applyUpdate(ydoc2, diffUpdate);
+  Y.applyUpdate(ydoc2!, diffUpdate!);
 
   expect(ydoc1.getArray("arr").length).toBe(N * 2);
-  expect(ydoc2.getArray("arr").length).toBe(N * 2);
+  expect(ydoc2?.getArray("arr").length).toBe(N * 2);
 });
 
 test("testMetas", async () => {
   const docName = "testMetas";
-  const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+  const leveldbPersistence = new DynamoDBPersistence(dynamoDBClient, {
     tableName,
   });
 
@@ -213,9 +213,9 @@ test("testMetas", async () => {
   expect(b).toBe(4);
 
   const metas = await leveldbPersistence.getMetas(docName);
-  expect(metas.size).toBe(2);
-  expect(metas.get("a")).toBe(5);
-  expect(metas.get("b")).toBe(4);
+  expect(metas?.size).toBe(2);
+  expect(metas?.get("a")).toBe(5);
+  expect(metas?.get("b")).toBe(4);
 
   await leveldbPersistence.delMeta(docName, "a");
   const c = await leveldbPersistence.getMeta(docName, "a");
@@ -223,15 +223,15 @@ test("testMetas", async () => {
 
   await leveldbPersistence.clearDocument(docName);
   const metasEmpty = await leveldbPersistence.getMetas(docName);
-  expect(metasEmpty.size).toBe(0);
+  expect(metasEmpty?.size).toBe(0);
 });
 
 test("testMisc", async () => {
   const docName = "testMisc";
-  const leveldbPersistence = new DynamodbPersistence(dynamoDBClient, {
+  const leveldbPersistence = new DynamoDBPersistence(dynamoDBClient, {
     tableName,
   });
 
   const sv = await leveldbPersistence.getStateVector(docName);
-  expect(Buffer.from(sv).byteLength).toBe(1);
+  expect(Buffer.from(sv!).byteLength).toBe(1);
 });

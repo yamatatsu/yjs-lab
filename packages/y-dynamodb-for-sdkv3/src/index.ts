@@ -67,7 +67,7 @@ type Config = {
 };
 type TransactCallback<T> = () => Promise<T>;
 
-export default class DynamodbPersistence {
+export default class DynamoDBPersistence {
   private readonly client: YDynamoDBClient;
 
   constructor(
