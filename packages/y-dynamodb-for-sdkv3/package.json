@@ -1,16 +1,33 @@
 {
   "name": "y-dynamodb-for-sdkv3",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "DynamoDB database adapter for Yjs",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "unbuild",
-    "stub": "unbuild --stub",
-    "prepublishOnly": "pnpm build",
-    "test": "jest"
+  "author": "Tatsuya Yamamoto <the.kinnikuman@gmail.com> (https://github.com/yamatatsu)",
+  "license": "MIT",
+  "repository": "github:yamatatsu/yjs-lab",
+  "bugs": {
+    "url": "https://github.com/yamatatsu/yjs-lab/issues"
   },
+  "homepage": "https://github.com/yamatatsu/yjs-lab/tree/main/packages/y-dynamodb-for-sdkv3#readme",
+  "keywords": [
+    "Yjs",
+    "CRDT",
+    "offline",
+    "shared editing",
+    "collaboration",
+    "concurrency",
+    "aws",
+    "dynamodb",
+    "amazon",
+    "database"
+  ],
+  "files": [
+    "dist",
+    "lib"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,9 +35,12 @@
       "import": "./dist/index.mjs"
     }
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
+  "scripts": {
+    "build": "unbuild",
+    "stub": "unbuild --stub",
+    "prepublishOnly": "pnpm build",
+    "test": "jest"
+  },
   "dependencies": {
     "lib0": "^0.2.62"
   },

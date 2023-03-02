@@ -1,14 +1,9 @@
 {
   "name": "play-yjs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "18.13.0",
     "typescript": "~4.9.5",
