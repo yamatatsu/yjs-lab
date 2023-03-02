@@ -1,4 +1,6 @@
-# DynamoDB database adapter for [Yjs](https://github.com/yjs/yjs) for AWS SDK v3
+# y-dynamodb-for-sdkv3
+
+DynamoDB database adapter for [Yjs](https://github.com/yjs/yjs) for AWS SDK v3
 
 Rewritten from [y-dynamodb](https://github.com/hesselbom/y-dynamodb/) to use AWS DynamoDB with AWS SDK v3.
 
@@ -52,10 +54,9 @@ ydocPersisted.getArray("arr").toArray(); // [1, 2, 3]
 ```
 
 `y-dynamodb-for-sdkv3` is implemented for use in distributed systems such as aws Lambda.
-For this requirement, `y-dynamodb-for-sdkv3` use [atomic counter on DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html#WorkingWithItems.AtomicCounters).
-This ensures that even when multiple processes save updates to the same document, they do so without conflict.
+Even when multiple processes save updates to the same document, they do so without conflict.
 
-## Other API
+## Other APIs
 
 #### `persistence.getStateVector(docName: string): Promise<Uint8Array>`
 
@@ -92,6 +93,12 @@ Delete a store meta value.
 
 Internally y-dynamodb-for-sdkv3 stores incremental updates. You can merge all document
 updates to a single entry. You probably never have to use this.
+
+## Improvements
+
+- use atomic counter for conflict-free and improving performance
+- use string sort key for readable DynamoDB Table items
+- improve the `flushDocument()` procedure for conflict-free
 
 ## License
 
