@@ -53,7 +53,7 @@ test("use vector", () => {
   expect(arr2.toArray()).toEqual(["first"]);
 });
 
-test.only("applying update is commutative", () => {
+test("applying update is commutative", () => {
   // GIVEN
   const doc1 = new Y.Doc();
   const doc2 = new Y.Doc();
