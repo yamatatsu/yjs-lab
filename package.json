@@ -2,6 +2,7 @@
   "name": "yjs-lab",
   "version": "1.0.0",
   "scripts": {
+    "build": "pnpm --filter y-dynamodb-for-sdkv3 build",
     "test": "pnpm test --filter './packages/*'"
   },
   "devDependencies": {
