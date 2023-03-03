@@ -1,3 +1,5 @@
+[![CI](https://github.com/yamatatsu/yjs-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/yamatatsu/yjs-lab/actions/workflows/ci.yml)
+
 # yjs-lab
 
 includes:
