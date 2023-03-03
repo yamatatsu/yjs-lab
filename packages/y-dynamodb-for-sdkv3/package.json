@@ -39,7 +39,7 @@
     "build": "unbuild",
     "stub": "unbuild --stub",
     "prepublishOnly": "pnpm build",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "lib0": "^0.2.62"
