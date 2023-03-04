@@ -156,46 +156,50 @@ test.skip(
   1000 * 10
 );
 
-test.skip("testDiff", async () => {
-  const N = PREFERRED_TRIM_SIZE * 2; // primes are awesome - ensure that the document is at least flushed once
-  const docName = "testDiff";
-  const ydoc1 = new Y.Doc();
-  ydoc1.clientID = 0; // so we can check the state vector
-  const persistence = new DynamoDBPersistence(dynamoDBClient, {
-    tableName,
-  });
+test(
+  "testDiff",
+  async () => {
+    const N = PREFERRED_TRIM_SIZE * 2; // primes are awesome - ensure that the document is at least flushed once
+    const docName = "testDiff";
+    const ydoc1 = new Y.Doc();
+    ydoc1.clientID = 0; // so we can check the state vector
+    const persistence = new DynamoDBPersistence(dynamoDBClient, {
+      tableName,
+    });
 
-  const updates: Uint8Array[] = [];
-  ydoc1.on("update", (update: Uint8Array) => {
-    updates.push(update);
-  });
+    const updates: Uint8Array[] = [];
+    ydoc1.on("update", (update: Uint8Array) => {
+      updates.push(update);
+    });
 
-  const yarray = ydoc1.getArray("arr");
-  // create N changes
-  for (let i = 0; i < N; i++) {
-    yarray.insert(0, [i]);
-  }
-  await flushUpdatesHelper(persistence, docName, updates);
+    const yarray = ydoc1.getArray("arr");
+    // create N changes
+    for (let i = 0; i < N; i++) {
+      yarray.insert(0, [i]);
+    }
+    await flushUpdatesHelper(persistence, docName, updates);
 
-  // create partially merged doc
-  const ydoc2 = await persistence.getYDoc(docName);
+    // create partially merged doc
+    const ydoc2 = await persistence.getYDoc(docName);
 
-  // another N updates
-  for (let i = 0; i < N; i++) {
-    yarray.insert(0, [i]);
-  }
-  await flushUpdatesHelper(persistence, docName, updates);
+    // another N updates
+    for (let i = 0; i < N; i++) {
+      yarray.insert(0, [i]);
+    }
+    await flushUpdatesHelper(persistence, docName, updates);
 
-  // apply diff to doc
-  const diffUpdate = await persistence.getDiff(
-    docName,
-    Y.encodeStateVector(ydoc2!)
-  );
-  Y.applyUpdate(ydoc2!, diffUpdate!);
+    // apply diff to doc
+    const diffUpdate = await persistence.getDiff(
+      docName,
+      Y.encodeStateVector(ydoc2!)
+    );
+    Y.applyUpdate(ydoc2!, diffUpdate!);
 
-  expect(ydoc1.getArray("arr").length).toBe(N * 2);
-  expect(ydoc2?.getArray("arr").length).toBe(N * 2);
-});
+    expect(ydoc1.getArray("arr").length).toBe(N * 2);
+    expect(ydoc2?.getArray("arr").length).toBe(N * 2);
+  },
+  1000 * 60
+);
 
 test("testMetas", async () => {
   const docName = "testMetas";
