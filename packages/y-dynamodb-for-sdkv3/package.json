@@ -37,8 +37,6 @@
   },
   "scripts": {
     "build": "unbuild",
-    "stub": "unbuild --stub",
-    "prepublishOnly": "pnpm build",
     "test": "jest --runInBand"
   },
   "dependencies": {
