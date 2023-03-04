@@ -90,7 +90,7 @@ test("testDynamoDBUpdateStorage", async () => {
   expect(await getAllItems()).toEqual([]);
 });
 
-test.skip(
+test(
   "testEncodeManyUpdates",
   async () => {
     const N = PREFERRED_TRIM_SIZE * 7;
@@ -153,7 +153,7 @@ test.skip(
     );
     console.timeEnd("persistence.getStateVector(docName)");
   },
-  1000 * 10
+  1000 * 60
 );
 
 test(
@@ -198,7 +198,7 @@ test(
     expect(ydoc1.getArray("arr").length).toBe(N * 2);
     expect(ydoc2?.getArray("arr").length).toBe(N * 2);
   },
-  1000 * 60
+  1000 * 20
 );
 
 test("testMetas", async () => {
