@@ -153,7 +153,7 @@ test(
     );
     console.timeEnd("persistence.getStateVector(docName)");
   },
-  1000 * 60
+  1000 * 30
 );
 
 test(
@@ -198,7 +198,7 @@ test(
     expect(ydoc1.getArray("arr").length).toBe(N * 2);
     expect(ydoc2?.getArray("arr").length).toBe(N * 2);
   },
-  1000 * 20
+  1000 * 10
 );
 
 test("testMetas", async () => {
