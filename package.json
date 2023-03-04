@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "build": "pnpm --filter y-dynamodb-for-sdkv3 build",
-    "test": "pnpm test --filter '!./packages/y-dynamodb-for-sdkv3'"
+    "test": "pnpm test --filter '!./packages/y-dynamodb-for-sdkv3'",
+    "test-y-dynamodb": "pnpm test --filter './packages/y-dynamodb-for-sdkv3'"
   },
   "devDependencies": {
     "prettier": "^2.8.4"

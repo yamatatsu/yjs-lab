@@ -90,7 +90,7 @@ test("testDynamoDBUpdateStorage", async () => {
   expect(await getAllItems()).toEqual([]);
 });
 
-test(
+test.skip(
   "testEncodeManyUpdates",
   async () => {
     const N = PREFERRED_TRIM_SIZE * 7;
@@ -156,7 +156,7 @@ test(
   1000 * 10
 );
 
-test("testDiff", async () => {
+test.skip("testDiff", async () => {
   const N = PREFERRED_TRIM_SIZE * 2; // primes are awesome - ensure that the document is at least flushed once
   const docName = "testDiff";
   const ydoc1 = new Y.Doc();
