@@ -42,13 +42,13 @@ jobs:
       - run: pnpm test
       - name: Bump ${{ github.event.inputs.packageName }} version and tag
         run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           cd packages/${{ github.event.inputs.packageName }}
           pnpm version ${{ github.event.inputs.bumpType }}
           NEW_VERSION=v$(cat package.json | jq -r '.version')
           git commit -m "Bump ${{ github.event.inputs.packageName }} version upt to $NEW_VERSION"
           git tag ${{ github.event.inputs.packageName }}/$NEW_VERSION
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
           git push --tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
