@@ -1,6 +1,6 @@
 {
   "name": "play-yjs",
-  "version": "1.0.0",
+  "private": true,
   "scripts": {
     "test": "vitest run",
     "test-w": "vitest"

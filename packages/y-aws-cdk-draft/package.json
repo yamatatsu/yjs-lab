@@ -1,9 +1,6 @@
 {
   "name": "y-aws-cdk-draft",
-  "version": "0.1.0",
-  "bin": {
-    "y-aws-cdk-draft": "bin/y-aws-cdk-draft.js"
-  },
+  "private": true,
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
