@@ -151,6 +151,25 @@ importers:
       unbuild: 1.1.2
       yjs: 13.5.45
 
+  packages/y-websocket-for-aws-apigateway:
+    specifiers:
+      '@types/node': 18.13.0
+      lib0: ^0.2.62
+      typescript: ~4.9.5
+      unbuild: ^1.1.2
+      vitest: ^0.28.5
+      y-protocols: ^1.0.5
+      yjs: ^13.5.45
+    dependencies:
+      lib0: 0.2.62
+      y-protocols: 1.0.5
+    devDependencies:
+      '@types/node': 18.13.0
+      typescript: 4.9.5
+      unbuild: 1.1.2
+      vitest: 0.28.5
+      yjs: 13.5.45
+
 packages:
 
   /@ampproject/remapping/2.2.0:

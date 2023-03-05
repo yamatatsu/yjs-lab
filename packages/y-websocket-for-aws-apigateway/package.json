@@ -1,0 +1,55 @@
+{
+  "name": "y-websocket-for-aws-apigateway",
+  "version": "0.0.0",
+  "description": "Websockets provider for Yjs with AWS API Gateway",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "author": "Tatsuya Yamamoto <the.kinnikuman@gmail.com> (https://github.com/yamatatsu)",
+  "license": "MIT",
+  "repository": "github:yamatatsu/yjs-lab",
+  "bugs": {
+    "url": "https://github.com/yamatatsu/yjs-lab/issues"
+  },
+  "homepage": "https://github.com/yamatatsu/yjs-lab/tree/main/packages/y-websocket-for-aws-apigateway#readme",
+  "keywords": [
+    "Yjs",
+    "CRDT",
+    "offline",
+    "shared editing",
+    "collaboration",
+    "concurrency",
+    "amazon",
+    "aws",
+    "apigateway",
+    "websocket"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "unbuild",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "lib0": "^0.2.62",
+    "y-protocols": "^1.0.5"
+  },
+  "peerDependencies": {
+    "yjs": "^13.5.45"
+  },
+  "devDependencies": {
+    "@types/node": "18.13.0",
+    "typescript": "~4.9.5",
+    "unbuild": "^1.1.2",
+    "vitest": "^0.28.5",
+    "yjs": "^13.5.45"
+  }
+}
