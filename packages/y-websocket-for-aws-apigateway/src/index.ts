@@ -8,7 +8,6 @@ import * as authProtocol from "y-protocols/auth";
 import * as awarenessProtocol from "y-protocols/awareness";
 import { Observable } from "lib0/observable";
 import * as math from "lib0/math";
-import * as url from "lib0/url";
 import { toBase64, fromBase64 } from "lib0/buffer.js";
 
 /**
@@ -286,7 +285,6 @@ export class WebsocketProvider extends Observable<string> {
    * @param {object} [opts]
    * @param {boolean} [opts.connect]
    * @param {awarenessProtocol.Awareness} [opts.awareness]
-   * @param {Object<string,string>} [opts.params]
    * @param {typeof WebSocket} [opts.WebSocketPolyfill] Optionall provide a WebSocket polyfill
    * @param {number} [opts.resyncInterval] Request server state every `resyncInterval` milliseconds
    * @param {number} [opts.maxBackoffTime] Maximum amount of time to wait before trying to reconnect (we try to reconnect using exponential backoff)
@@ -299,7 +297,8 @@ export class WebsocketProvider extends Observable<string> {
     {
       connect = true,
       awareness = new awarenessProtocol.Awareness(doc),
-      params = {},
+      // AWS API Gateway websocket api has not supported url parameters yet.
+      // params = {},
       WebSocketPolyfill = WebSocket,
       resyncInterval = -1,
       maxBackoffTime = 2500,
@@ -308,7 +307,6 @@ export class WebsocketProvider extends Observable<string> {
     }: Partial<{
       connect: boolean;
       awareness: awarenessProtocol.Awareness;
-      params: Record<string, string>;
       WebSocketPolyfill: typeof WebSocket;
       resyncInterval: number;
       maxBackoffTime: number;
@@ -321,7 +319,6 @@ export class WebsocketProvider extends Observable<string> {
     while (serverUrl[serverUrl.length - 1] === "/") {
       serverUrl = serverUrl.slice(0, serverUrl.length - 1);
     }
-    const encodedParams = url.encodeQueryParams(params);
     this.maxBackoffTime = maxBackoffTime;
     this.bcChannel = serverUrl + "/" + docId;
     this.url = serverUrl;
