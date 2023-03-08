@@ -57,10 +57,12 @@ importers:
       react-dom: ^18.2.0
       typescript: ^4.9.3
       vite: ^4.1.0
+      y-websocket-for-aws-apigateway: '*'
       yjs: ^13.5.45
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
+      y-websocket-for-aws-apigateway: link:../y-websocket-for-aws-apigateway
       yjs: 13.5.45
     devDependencies:
       '@types/react': 18.0.28

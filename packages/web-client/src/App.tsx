@@ -1,5 +1,6 @@
 import * as Y from "yjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { WebsocketProvider } from "y-websocket-for-aws-apigateway";
 import "./App.css";
 
 function App() {
@@ -30,22 +31,39 @@ function App() {
 export default App;
 
 const doc = new Y.Doc();
+const url = "wss://ijxmnnebka.execute-api.ap-northeast-1.amazonaws.com/dev/";
+const token = import.meta.env.VITE_WEBSOCKET_TOKEN;
+const docId = "web-client-doc";
+new WebsocketProvider(url, docId, doc, {
+  subprotocols: [token],
+  disableBc: true,
+});
+
 const map = doc.getMap<string>("my-map");
 const arr = doc.getArray<string>("my-array");
 const useYDoc = () => {
-  const [mapJson, setMapJson] = useState<Record<string, string>>({});
-  const [arrJson, setArrJson] = useState<string[]>([]);
+  const [mapJson, setMapJson] = useState<Record<string, string>>(map.toJSON());
+  const [arrJson, setArrJson] = useState<string[]>(arr.toArray());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setMapJson(map.toJSON());
+      setArrJson(arr.toArray());
+    };
+    doc.on("update", handleUpdate);
+    return () => {
+      doc.off("update", handleUpdate);
+    };
+  });
 
   return {
     mapJson,
     arrJson,
     addMapItem: (key: string, val: string) => {
       map.set(key, val);
-      setMapJson(map.toJSON());
     },
     pushArrItem: (val: string) => {
       arr.push([val]);
-      setArrJson(arr.toArray());
     },
   };
 };
