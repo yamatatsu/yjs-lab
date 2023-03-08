@@ -10,8 +10,10 @@ function App() {
   const {
     mapJson,
     arrJson,
-    addMapItem,
+    setMapItem,
+    deleteMapItem,
     pushArrItem,
+    popArrItem,
     undoMap,
     redoMap,
     undoArr,
@@ -24,7 +26,10 @@ function App() {
       <div>
         <input value={mapKey} onChange={(e) => setMapKey(e.target.value)} />
         <input value={mapVal} onChange={(e) => setMapVal(e.target.value)} />
-        <button onClick={() => addMapItem(mapKey, mapVal)}>set to map</button>
+      </div>
+      <div>
+        <button onClick={() => setMapItem(mapKey, mapVal)}>set</button>
+        <button onClick={() => deleteMapItem(mapKey)}>delete</button>
       </div>
       <div>
         <button onClick={undoMap}>undo</button>
@@ -34,7 +39,10 @@ function App() {
       <line></line>
       <div>
         <input value={arrVal} onChange={(e) => setArrVal(e.target.value)} />
-        <button onClick={() => pushArrItem(arrVal)}>push to array</button>
+      </div>
+      <div>
+        <button onClick={() => pushArrItem(arrVal)}>push</button>
+        <button onClick={popArrItem}>pop</button>
       </div>
       <div>
         <button onClick={undoArr}>undo</button>
@@ -79,11 +87,18 @@ const useYDoc = () => {
   return {
     mapJson,
     arrJson,
-    addMapItem: (key: string, val: string) => {
+    setMapItem: (key: string, val: string) => {
       map.set(key, val);
+    },
+    deleteMapItem: (key: string) => {
+      map.delete(key);
     },
     pushArrItem: (val: string) => {
       arr.push([val]);
+    },
+    popArrItem: () => {
+      if (arr.length === 0) return;
+      arr.delete(arr.length - 1);
     },
     undoMap: () => {
       mapUndoManager.undo();
