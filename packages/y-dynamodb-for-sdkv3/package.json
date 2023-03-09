@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.272.0",
-    "yjs": "^13.5.45"
+    "yjs": "^13.5.48"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.287.0",
