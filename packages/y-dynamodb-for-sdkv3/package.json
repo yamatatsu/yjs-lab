@@ -40,7 +40,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "lib0": "^0.2.62"
+    "lib0": "^0.2.62",
+    "nanoid": "^4.0.1"
   },
   "peerDependencies": {
     "@aws-sdk/client-dynamodb": "^3.272.0",

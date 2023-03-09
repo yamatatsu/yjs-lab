@@ -20,22 +20,6 @@ const tableName = "y-dynamodb";
 const docName = "update-storage-doc";
 const client = new YDynamoDBClient(ddb, tableName);
 
-describe("stateVector", () => {
-  test("put and get", async () => {
-    // GIVEN
-    const doc = new Y.Doc();
-    const sv = Y.encodeStateVector(doc);
-    await client.putStateVector(docName, sv, 0);
-
-    // WHEN
-    const stateVectorData = await client.getStateVector(docName);
-
-    // THEN
-    expect(stateVectorData.sv).toEqual(sv);
-    expect(stateVectorData.clock).toBe(0);
-  });
-});
-
 describe("update", () => {
   test("put and get", async () => {
     // GIVEN
@@ -47,7 +31,7 @@ describe("update", () => {
     doc.getArray("myArray").push(["1st"]);
     doc.getArray("myArray").push(["2nd"]);
     await Promise.all(
-      updates.map((update, i) => client.putUpdate(docName, i, update))
+      updates.map((update) => client.putUpdate(docName, new Date(), update))
     );
 
     // WHEN
@@ -73,7 +57,7 @@ describe("update", () => {
       doc.getArray("myArray").push([i]);
     }
     await Promise.all(
-      updates.map((update, i) => client.putUpdate(docName, i, update))
+      updates.map((update) => client.putUpdate(docName, new Date(), update))
     );
 
     // WHEN
@@ -83,16 +67,6 @@ describe("update", () => {
 
     // THEN
     expect(storedUpdates).toHaveLength(0);
-  });
-});
-
-describe("updateClock", () => {
-  test("get update-clock", async () => {
-    await expect(client.getCurrentUpdateClock(docName)).resolves.toBe(null);
-    await expect(client.getNextUpdateClock(docName)).resolves.toBe(1);
-    await expect(client.getNextUpdateClock(docName)).resolves.toBe(2);
-    await expect(client.getNextUpdateClock(docName)).resolves.toBe(3);
-    await expect(client.getCurrentUpdateClock(docName)).resolves.toBe(3);
   });
 });
 
@@ -151,17 +125,14 @@ describe("document", () => {
   test("delete", async () => {
     // GIVEN
     const doc = new Y.Doc();
-    await client.putStateVector(docName, Y.encodeStateVector(doc), 0);
-    await client.putUpdate(docName, 0, Y.encodeStateAsUpdate(doc));
+    await client.putUpdate(docName, new Date(), Y.encodeStateAsUpdate(doc));
 
     // WHEN
     await client.deleteDocument(docName);
-    const stateVectorItem = await client.getStateVector(docName);
     const { updates: updateItems } = await client.getUpdates(docName);
     const metas = await client.getMetas(docName);
 
     // THEN
-    expect(stateVectorItem).not.toBeNull();
     expect(updateItems).toHaveLength(0);
     expect(metas).toEqual(new Map());
   });

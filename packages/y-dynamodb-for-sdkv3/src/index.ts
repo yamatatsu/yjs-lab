@@ -10,7 +10,7 @@ export const PREFERRED_TRIM_SIZE = 500;
  */
 const mergeUpdates = (
   updates: Uint8Array[]
-): { ydoc: Y.Doc; update: Uint8Array; sv: Uint8Array } => {
+): { ydoc: Y.Doc; update: Uint8Array } => {
   const ydoc = new Y.Doc();
   ydoc.transact(() => {
     updates.forEach((update) => {
@@ -20,46 +20,7 @@ const mergeUpdates = (
   return {
     ydoc,
     update: Y.encodeStateAsUpdate(ydoc),
-    sv: Y.encodeStateVector(ydoc),
   };
-};
-
-/**
- * @returns the clock of the flushed doc
- */
-const flushDocument = async (
-  client: YDynamoDBClient,
-  docName: string,
-  stateAsUpdate: Uint8Array,
-  stateVector: Uint8Array,
-  deleteUpdates: () => Promise<void>
-): Promise<number> => {
-  const clock = await storeUpdate(client, docName, stateAsUpdate);
-  await client.putStateVector(docName, stateVector, clock);
-  await deleteUpdates();
-  return clock;
-};
-
-/**
- * @returns the clock of the stored update
- */
-const storeUpdate = async (
-  client: YDynamoDBClient,
-  docName: string,
-  update: Uint8Array
-): Promise<number> => {
-  const clock = await client.getNextUpdateClock(docName);
-
-  // first time for storeUpdate to the doc
-  if (clock === 1) {
-    // make sure that a state vector is always written, so we can search for available documents
-    const ydoc = new Y.Doc();
-    Y.applyUpdate(ydoc, update);
-    const sv = Y.encodeStateVector(ydoc);
-    await client.putStateVector(docName, sv, clock);
-  }
-  await client.putUpdate(docName, clock, update);
-  return clock;
 };
 
 type Config = {
@@ -81,46 +42,32 @@ export default class DynamoDBPersistence {
     return this.transact(async () => {
       const { updates, deleteUpdates } = await this.client.getUpdates(docName);
 
-      const { ydoc, update, sv } = mergeUpdates(updates);
+      const { ydoc, update } = mergeUpdates(updates);
       if (updates.length > PREFERRED_TRIM_SIZE) {
-        await flushDocument(this.client, docName, update, sv, deleteUpdates);
+        await this._flush(docName, update, deleteUpdates);
       }
       return ydoc;
     });
   }
 
   async storeUpdate(docName: string, update: Uint8Array): Promise<void> {
-    await this.transact(() => storeUpdate(this.client, docName, update));
+    await this.transact(() =>
+      this.client.putUpdate(docName, new Date(), update)
+    );
   }
 
   async flushDocument(docName: string): Promise<void> {
     await this.transact(async () => {
       const { updates, deleteUpdates } = await this.client.getUpdates(docName);
-      const { update, sv } = mergeUpdates(updates);
-      await flushDocument(this.client, docName, update, sv, deleteUpdates);
+      const { update } = mergeUpdates(updates);
+      await this._flush(docName, update, deleteUpdates);
     });
   }
 
   async getStateVector(docName: string): Promise<Uint8Array | null> {
-    return this.transact(async () => {
-      const { clock, sv } = await this.client.getStateVector(docName);
-      let curClock: number | null = -1;
-      /* istanbul ignore next */
-      if (sv !== null) {
-        curClock = await this.client.getCurrentUpdateClock(docName);
-      }
-      if (sv !== null && clock === curClock) {
-        return sv;
-      } else {
-        // current state vector is outdated
-        const { updates, deleteUpdates } = await this.client.getUpdates(
-          docName
-        );
-        const { update, sv } = mergeUpdates(updates);
-        await flushDocument(this.client, docName, update, sv, deleteUpdates);
-        return sv;
-      }
-    });
+    const ydoc = await this.getYDoc(docName);
+    if (!ydoc) return null;
+    return Y.encodeStateVector(ydoc);
   }
 
   async getDiff(
@@ -150,6 +97,15 @@ export default class DynamoDBPersistence {
 
   async delMeta(docName: string, metaKey: string): Promise<void> {
     await this.transact(() => this.client.deleteMeta(docName, metaKey));
+  }
+
+  private async _flush(
+    docName: string,
+    stateAsUpdate: Uint8Array,
+    deleteUpdates: () => Promise<void>
+  ): Promise<void> {
+    await this.client.putUpdate(docName, new Date(), stateAsUpdate);
+    await deleteUpdates();
   }
 
   // Execute an transaction on a database. This will ensure that other processes are currently not writing.
