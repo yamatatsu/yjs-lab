@@ -1,6 +1,10 @@
+// @vitest-environment dynalite
+
 process.env.TABLE_NAME = "y-aws-cdk-table";
 
-import { handler } from "../lib/y-aws-cdk-draft-stack.DefaultHandler";
+import { beforeEach, describe, test, expect } from "vitest";
+import { useDynalite } from "vitest-environment-dynalite";
+import { handler } from "../src/default-handler";
 import {
   ApiGatewayManagementApiClient,
   PostToConnectionCommand,
@@ -12,7 +16,9 @@ import * as awarenessProtocol from "y-protocols/awareness";
 import * as encoding from "lib0/encoding";
 import * as decoding from "lib0/decoding";
 import { toBase64, fromBase64 } from "lib0/buffer";
-import { persistence } from "../lib/db/y-doc-persistence";
+import { persistence } from "../src/db/y-doc-persistence";
+
+useDynalite();
 
 const apiGatewayManagementApiMock = mockClient(ApiGatewayManagementApiClient);
 

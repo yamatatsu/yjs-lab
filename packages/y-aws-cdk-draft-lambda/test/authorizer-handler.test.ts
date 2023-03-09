@@ -1,6 +1,12 @@
+// @vitest-environment dynalite
+
 process.env.WEBSOCKET_TOKEN = "test-WEBSOCKET_TOKEN";
 
-import { handler } from "../lib/y-aws-cdk-draft-stack.AuthorizerHandler";
+import { test, expect } from "vitest";
+import { useDynalite } from "vitest-environment-dynalite";
+import { handler } from "../src/authorizer-handler";
+
+useDynalite();
 
 test.each`
   authorizationHeader | expected

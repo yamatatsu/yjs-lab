@@ -76,6 +76,34 @@ importers:
       '@aws-cdk/aws-apigatewayv2-alpha': 2.64.0-alpha.0
       '@aws-cdk/aws-apigatewayv2-authorizers-alpha': 2.64.0-alpha.0
       '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.64.0-alpha.0
+      '@types/jest': ^29.4.0
+      '@types/node': 18.13.0
+      aws-cdk: 2.64.0
+      aws-cdk-lib: 2.64.0
+      constructs: ^10.0.0
+      esbuild: ^0.17.7
+      jest: ^29.4.2
+      ts-jest: ^29.0.5
+      ts-node: ^10.9.1
+      typescript: ~4.9.5
+    dependencies:
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.64.0-alpha.0_ttryatjc4xy6s4sdi25qirpvee
+      '@aws-cdk/aws-apigatewayv2-authorizers-alpha': 2.64.0-alpha.0_3ngusetu6njmi23furyws55fyi
+      '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.64.0-alpha.0_3ngusetu6njmi23furyws55fyi
+      aws-cdk-lib: 2.64.0_constructs@10.1.248
+      constructs: 10.1.248
+    devDependencies:
+      '@types/jest': 29.4.0
+      '@types/node': 18.13.0
+      aws-cdk: 2.64.0
+      esbuild: 0.17.7
+      jest: 29.5.0_ucpl6toqp57nqodtp3vxxi6g5a
+      ts-jest: 29.0.5_63rzcr7qjy5arqao7tqmwhu3he
+      ts-node: 10.9.1_4bewfcp2iebiwuold25d6rgcsy
+      typescript: 4.9.5
+
+  packages/y-aws-cdk-draft-lambda:
+    specifiers:
       '@aws-sdk/client-apigatewaymanagementapi': ^3.287.0
       '@aws-sdk/client-dynamodb': ^3.287.0
       '@aws-sdk/lib-dynamodb': ^3.287.0
@@ -83,50 +111,33 @@ importers:
       '@aws-sdk/types': ^3.272.0
       '@aws-sdk/util-dynamodb': ^3.287.0
       '@types/aws-lambda': ^8.10.110
-      '@types/jest': ^29.4.0
       '@types/node': 18.13.0
-      aws-cdk: 2.64.0
-      aws-cdk-lib: 2.64.0
       aws-sdk-client-mock: ^2.1.0
-      constructs: ^10.0.0
-      esbuild: ^0.17.7
-      jest: ^29.4.2
-      jest-dynalite: ^3.6.1
       lib0: ^0.2.65
-      ts-jest: ^29.0.5
-      ts-node: ^10.9.1
       typescript: ~4.9.5
+      vitest: ^0.29.2
+      vitest-environment-dynalite: ^0.1.3
       y-dynamodb-for-sdkv3: '*'
       y-protocols: ^1.0.5
       yjs: ^13.5.48
     dependencies:
-      '@aws-cdk/aws-apigatewayv2-alpha': 2.64.0-alpha.0_ttryatjc4xy6s4sdi25qirpvee
-      '@aws-cdk/aws-apigatewayv2-authorizers-alpha': 2.64.0-alpha.0_3ngusetu6njmi23furyws55fyi
-      '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.64.0-alpha.0_3ngusetu6njmi23furyws55fyi
       '@aws-sdk/client-apigatewaymanagementapi': 3.287.0
       '@aws-sdk/client-dynamodb': 3.287.0
       '@aws-sdk/lib-dynamodb': 3.287.0_qwdfxceotffatekof3tng346d4
       '@aws-sdk/smithy-client': 3.279.0
       '@aws-sdk/types': 3.272.0
       '@aws-sdk/util-dynamodb': 3.287.0
-      aws-cdk-lib: 2.64.0_constructs@10.1.248
-      constructs: 10.1.248
       lib0: 0.2.65
       y-dynamodb-for-sdkv3: link:../y-dynamodb-for-sdkv3
       y-protocols: 1.0.5
       yjs: 13.5.48
     devDependencies:
       '@types/aws-lambda': 8.10.110
-      '@types/jest': 29.4.0
       '@types/node': 18.13.0
-      aws-cdk: 2.64.0
       aws-sdk-client-mock: 2.1.0
-      esbuild: 0.17.7
-      jest: 29.5.0_ucpl6toqp57nqodtp3vxxi6g5a
-      jest-dynalite: 3.6.1_tmrixunt6o6l6ki2beawn7ytua
-      ts-jest: 29.0.5_63rzcr7qjy5arqao7tqmwhu3he
-      ts-node: 10.9.1_4bewfcp2iebiwuold25d6rgcsy
       typescript: 4.9.5
+      vitest: 0.29.2
+      vitest-environment-dynalite: 0.1.3_vitest@0.29.2
 
   packages/y-dynamodb-for-sdkv3:
     specifiers:
@@ -971,14 +982,6 @@ packages:
       '@aws-sdk/abort-controller': 3.272.0
       '@aws-sdk/types': 3.272.0
       tslib: 2.5.0
-
-  /@aws/dynamodb-auto-marshaller/0.7.1:
-    resolution: {integrity: sha512-LeURlf6/avrfFo9+4Yht9J3CUTJ72yoBpm1FOUmlexuHNW4Ka61tG30w3ZDCXXXmCO2rG0k3ywAgNJEo3WPbyw==}
-    peerDependencies:
-      aws-sdk: ^2.7.0
-    dependencies:
-      tslib: 1.14.1
-    dev: true
 
   /@babel/code-frame/7.18.6:
     resolution: {integrity: sha512-TDCmlK5eOvH+eH7cdAFlNXeVJqWIQ7gW9tY1GJIpUtFb6CmjVyq2VM3u71bOyR8CRihcCgMUYoDNyLXao3+70Q==}
@@ -1943,7 +1946,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       jest-message-util: 29.5.0
       jest-util: 29.5.0
@@ -1964,14 +1967,14 @@ packages:
       '@jest/test-result': 29.5.0
       '@jest/transform': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.8.0
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.5.0
-      jest-config: 29.5.0_nvadb4ngcuh2lyv22apfdo6nc4
+      jest-config: 29.5.0_ucpl6toqp57nqodtp3vxxi6g5a
       jest-haste-map: 29.5.0
       jest-message-util: 29.5.0
       jest-regex-util: 29.4.3
@@ -1998,7 +2001,7 @@ packages:
     dependencies:
       '@jest/fake-timers': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       jest-mock: 29.5.0
     dev: true
 
@@ -2025,7 +2028,7 @@ packages:
     dependencies:
       '@jest/types': 29.5.0
       '@sinonjs/fake-timers': 10.0.2
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       jest-message-util: 29.5.0
       jest-mock: 29.5.0
       jest-util: 29.5.0
@@ -2058,7 +2061,7 @@ packages:
       '@jest/transform': 29.5.0
       '@jest/types': 29.5.0
       '@jridgewell/trace-mapping': 0.3.17
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       collect-v8-coverage: 1.0.1
       exit: 0.1.2
@@ -2146,7 +2149,7 @@ packages:
       '@jest/schemas': 29.4.3
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       '@types/yargs': 17.0.22
       chalk: 4.1.2
     dev: true
@@ -2521,7 +2524,7 @@ packages:
   /@types/graceful-fs/4.1.6:
     resolution: {integrity: sha512-Sig0SNORX9fdW+bQuTEovKj3uHcUL6LQKbCrrqb1X7J6/ReAbhCXRAhc+SMejhLELFj2QcyuxmUooZ4bt5ReSw==}
     dependencies:
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
     dev: true
 
   /@types/istanbul-lib-coverage/2.0.4:
@@ -3812,7 +3815,7 @@ packages:
       '@jest/expect': 29.5.0
       '@jest/test-result': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       co: 4.6.0
       dedent: 0.7.0
@@ -3858,46 +3861,6 @@ packages:
       - '@types/node'
       - supports-color
       - ts-node
-    dev: true
-
-  /jest-config/29.5.0_nvadb4ngcuh2lyv22apfdo6nc4:
-    resolution: {integrity: sha512-kvDUKBnNJPNBmFFOhDbm59iu1Fii1Q6SxyhXfvylq3UTHbg6o7j/g8k2dZyXWLvfdKB1vAPxNZnMgtKJcmu3kA==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    peerDependencies:
-      '@types/node': '*'
-      ts-node: '>=9.0.0'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      ts-node:
-        optional: true
-    dependencies:
-      '@babel/core': 7.20.12
-      '@jest/test-sequencer': 29.5.0
-      '@jest/types': 29.5.0
-      '@types/node': 18.14.6
-      babel-jest: 29.5.0_@babel+core@7.20.12
-      chalk: 4.1.2
-      ci-info: 3.8.0
-      deepmerge: 4.3.0
-      glob: 7.2.3
-      graceful-fs: 4.2.10
-      jest-circus: 29.5.0
-      jest-environment-node: 29.5.0
-      jest-get-type: 29.4.3
-      jest-regex-util: 29.4.3
-      jest-resolve: 29.5.0
-      jest-runner: 29.5.0
-      jest-util: 29.5.0
-      jest-validate: 29.5.0
-      micromatch: 4.0.5
-      parse-json: 5.2.0
-      pretty-format: 29.5.0
-      slash: 3.0.0
-      strip-json-comments: 3.1.1
-      ts-node: 10.9.1_4bewfcp2iebiwuold25d6rgcsy
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /jest-config/29.5.0_ucpl6toqp57nqodtp3vxxi6g5a:
@@ -3957,26 +3920,6 @@ packages:
       detect-newline: 3.1.0
     dev: true
 
-  /jest-dynalite/3.6.1_tmrixunt6o6l6ki2beawn7ytua:
-    resolution: {integrity: sha512-MERtTt8Pj39vFmbItMC3YuIaqLf1kh/pJIE0DRcjeP/2Fa8Nni9IxwN6XWIMgXNbFKtlOM6ppH+Bsy0rWIdPiw==}
-    engines: {node: '>=8'}
-    peerDependencies:
-      '@aws-sdk/client-dynamodb': '>=3'
-      aws-sdk: 2.x.x
-      jest: '>=20'
-    peerDependenciesMeta:
-      '@aws-sdk/client-dynamodb':
-        optional: true
-      aws-sdk:
-        optional: true
-    dependencies:
-      '@aws-sdk/client-dynamodb': 3.287.0
-      '@aws/dynamodb-auto-marshaller': 0.7.1
-      dynalite: 3.2.2
-      jest: 29.5.0_ucpl6toqp57nqodtp3vxxi6g5a
-      setimmediate: 1.0.5
-    dev: true
-
   /jest-each/29.5.0:
     resolution: {integrity: sha512-HM5kIJ1BTnVt+DQZ2ALp3rzXEl+g726csObrW/jpEGl+CDSSQpOJJX2KE/vEg8cxcMXdyEPu6U4QX5eruQv5hA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -3995,7 +3938,7 @@ packages:
       '@jest/environment': 29.5.0
       '@jest/fake-timers': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       jest-mock: 29.5.0
       jest-util: 29.5.0
     dev: true
@@ -4011,7 +3954,7 @@ packages:
     dependencies:
       '@jest/types': 29.5.0
       '@types/graceful-fs': 4.1.6
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.10
@@ -4062,7 +4005,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       jest-util: 29.5.0
     dev: true
 
@@ -4117,7 +4060,7 @@ packages:
       '@jest/test-result': 29.5.0
       '@jest/transform': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       emittery: 0.13.1
       graceful-fs: 4.2.10
@@ -4148,7 +4091,7 @@ packages:
       '@jest/test-result': 29.5.0
       '@jest/transform': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       cjs-module-lexer: 1.2.2
       collect-v8-coverage: 1.0.1
@@ -4203,7 +4146,7 @@ packages:
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.10
@@ -4228,7 +4171,7 @@ packages:
     dependencies:
       '@jest/test-result': 29.5.0
       '@jest/types': 29.5.0
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.13.1
@@ -4240,7 +4183,7 @@ packages:
     resolution: {integrity: sha512-NcrQnevGoSp4b5kg+akIpthoAFHxPBcb5P6mYPY0fUNT+sSvmtu6jlkEle3anczUKIKEbMxFimk9oTP/tpIPgA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
-      '@types/node': 18.14.6
+      '@types/node': 18.13.0
       jest-util: 29.5.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -4978,10 +4921,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-
-  /setimmediate/1.0.5:
-    resolution: {integrity: sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==}
-    dev: true
 
   /shebang-command/2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}

@@ -26,6 +26,7 @@ export class WebSocketApiStack extends cdk.Stack {
     });
 
     const authorizerHandler = new NodejsFunction(this, "AuthorizerHandler", {
+      entry: "../y-aws-cdk-draft-lambda/src/authorizer-handler.ts",
       runtime: lambda.Runtime.NODEJS_18_X,
       environment: {
         WEBSOCKET_TOKEN: ssm.StringParameter.fromStringParameterName(
@@ -36,18 +37,21 @@ export class WebSocketApiStack extends cdk.Stack {
       },
     });
     const connectHandler = new NodejsFunction(this, "ConnectHandler", {
+      entry: "../y-aws-cdk-draft-lambda/src/connect-handler.ts",
       runtime: lambda.Runtime.NODEJS_18_X,
       environment: {
         TABLE_NAME: table.tableName,
       },
     });
     const disconnectHandler = new NodejsFunction(this, "DisconnectHandler", {
+      entry: "../y-aws-cdk-draft-lambda/src/disconnect-handler.ts",
       runtime: lambda.Runtime.NODEJS_18_X,
       environment: {
         TABLE_NAME: table.tableName,
       },
     });
     const defaultHandler = new NodejsFunction(this, "DefaultHandler", {
+      entry: "../y-aws-cdk-draft-lambda/src/default-handler.ts",
       runtime: lambda.Runtime.NODEJS_18_X,
       environment: {
         TABLE_NAME: table.tableName,

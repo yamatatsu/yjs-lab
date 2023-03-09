@@ -1,7 +1,13 @@
+// @vitest-environment dynalite
+
 process.env.TABLE_NAME = "y-aws-cdk-table";
 
-import { handler } from "../lib/y-aws-cdk-draft-stack.DisconnectHandler";
+import { test, expect } from "vitest";
+import { useDynalite } from "vitest-environment-dynalite";
+import { handler } from "../src/disconnect-handler";
 import { DB } from "./utils/dynamodb";
+
+useDynalite();
 
 test("success", async () => {
   const res = await handler({

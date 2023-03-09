@@ -4,6 +4,5 @@ module.exports = {
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
-  preset: "jest-dynalite",
   collectCoverage: true,
 };
