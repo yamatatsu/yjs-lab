@@ -1,8 +1,14 @@
+// @vitest-environment dynalite
+
+import { test, expect } from "vitest";
+import { useDynalite } from "vitest-environment-dynalite";
 import * as Y from "yjs";
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import DynamoDBPersistence, { PREFERRED_TRIM_SIZE } from "../src";
 import YDynamoDBClient from "../src/database";
 import * as decoding from "lib0/decoding";
+
+useDynalite();
 
 const tableName = "y-dynamodb";
 

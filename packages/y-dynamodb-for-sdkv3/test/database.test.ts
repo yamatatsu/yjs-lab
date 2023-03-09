@@ -1,6 +1,12 @@
+// @vitest-environment dynalite
+
+import { describe, test, expect } from "vitest";
+import { useDynalite } from "vitest-environment-dynalite";
 import * as Y from "yjs";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import YDynamoDBClient from "../src/database";
+
+useDynalite();
 
 const ddb = new DynamoDBClient({
   ...(process.env.MOCK_DYNAMODB_ENDPOINT && {
