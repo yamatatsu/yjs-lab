@@ -18,13 +18,13 @@ importers:
       vite-node: ^0.28.5
       ws: ^8.12.1
       y-protocols: ^1.0.5
-      yjs: ^13.5.45
+      yjs: ^13.5.48
     dependencies:
       dotenv: 16.0.3
       lib0: 0.2.62
       ws: 8.12.1
       y-protocols: 1.0.5
-      yjs: 13.5.45
+      yjs: 13.5.48
     devDependencies:
       '@types/node': 18.13.0
       '@types/ws': 8.5.4
@@ -38,11 +38,11 @@ importers:
       typescript: ~4.9.5
       vitest: ^0.28.5
       y-protocols: ^1.0.5
-      yjs: ^13.5.45
+      yjs: ^13.5.48
     dependencies:
       lib0: 0.2.62
       y-protocols: 1.0.5
-      yjs: 13.5.45
+      yjs: 13.5.48
     devDependencies:
       '@types/node': 18.13.0
       typescript: 4.9.5
@@ -58,12 +58,12 @@ importers:
       typescript: ^4.9.3
       vite: ^4.1.0
       y-websocket-for-aws-apigateway: '*'
-      yjs: ^13.5.45
+      yjs: ^13.5.48
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
       y-websocket-for-aws-apigateway: link:../y-websocket-for-aws-apigateway
-      yjs: 13.5.45
+      yjs: 13.5.48
     devDependencies:
       '@types/react': 18.0.28
       '@types/react-dom': 18.0.11
@@ -159,7 +159,7 @@ importers:
       unbuild: ^1.1.2
       vitest: ^0.28.5
       y-protocols: ^1.0.5
-      yjs: ^13.5.45
+      yjs: ^13.5.48
     dependencies:
       lib0: 0.2.62
       y-protocols: 1.0.5
@@ -168,7 +168,7 @@ importers:
       typescript: 4.9.5
       unbuild: 1.1.2
       vitest: 0.28.5
-      yjs: 13.5.45
+      yjs: 13.5.48
 
 packages:
 
@@ -4400,6 +4400,7 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       isomorphic.js: 0.2.5
+    dev: false
 
   /lib0/0.2.65:
     resolution: {integrity: sha512-avDor/VGaIMqNTZ40NIsH+/O1jFUYJGB+Z30KQnNlx0NlcElQKVAg+wv2lfbnYjY6HjXW/cKvwrrZfLBoFIObA==}
@@ -5828,11 +5829,6 @@ packages:
       y18n: 5.0.8
       yargs-parser: 21.1.1
     dev: true
-
-  /yjs/13.5.45:
-    resolution: {integrity: sha512-9VUNDvb9oJHdYSMdzIpdM/agVm+EEFKRN+843CFqQuq5bo/BP3EAaxofRG9jQut3sqtGQT4A9YdQvOeeAjU6aA==}
-    dependencies:
-      lib0: 0.2.62
 
   /yjs/13.5.48:
     resolution: {integrity: sha512-RFUqe1UQa1iKfQ9wZkZQP33iEBBSTz6sW3S5CWzHEe0JVksOi8AzspSTvQk5VskoJj4HzMUYgaNcPrE0MqJ8xQ==}
