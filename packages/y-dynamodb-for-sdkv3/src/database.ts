@@ -1,19 +1,13 @@
 import {
   DynamoDBClient,
   BatchWriteItemCommand,
-  DeleteItemCommand,
-  DeleteItemInput,
-  GetItemCommand,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
   QueryInput,
   WriteRequest,
   AttributeValue,
-  GetItemInput,
 } from "@aws-sdk/client-dynamodb";
-import * as buffer from "lib0/buffer";
-import { valueEncoding } from "./encoding";
 import { nanoid } from "nanoid";
 
 type DynamodbItem = {
@@ -23,10 +17,6 @@ type DynamodbItem = {
 
 const createUpdateKey = (date?: Date): string =>
   `update:${date ? `${date.toISOString()}_${nanoid()}` : ""}`;
-const createMetaKey = (metaKey: string): string => `meta:${metaKey}`;
-
-const getMetaKey = (item: DynamodbItem): string =>
-  item.sortKey.S.replace("meta:", "");
 
 /**
  * This class concealing the schema of database.
@@ -37,15 +27,10 @@ export default class YDynamoDBClient {
     private readonly tableName: string
   ) {}
 
-  // Update
-
   putUpdate(docName: string, date: Date, update: Uint8Array): Promise<void> {
     return this.put(docName, createUpdateKey(date), update);
   }
 
-  /**
-   * Get all document updates for a specific document.
-   */
   async getUpdates(
     docName: string
   ): Promise<{ updates: Uint8Array[]; deleteUpdates: () => Promise<void> }> {
@@ -57,34 +42,6 @@ export default class YDynamoDBClient {
       deleteUpdates: () => this.clearItems(docName, items),
     };
   }
-
-  // Meta
-
-  putMeta(docName: string, metaKey: string, value: any): Promise<void> {
-    return this.put(docName, createMetaKey(metaKey), buffer.encodeAny(value));
-  }
-
-  async getMetas(docName: string): Promise<Map<string, any>> {
-    const items = await this.query({
-      ...this.createBeginsWithQueryInput(docName, createMetaKey("")),
-    });
-    const metas = new Map();
-    items.forEach((item) => {
-      metas.set(getMetaKey(item), buffer.decodeAny(item.value.B));
-    });
-    return metas;
-  }
-
-  async getMeta(docName: string, metaKey: string): Promise<any | null> {
-    const item = await this.get(docName, createMetaKey(metaKey));
-    return item && buffer.decodeAny(item.value.B);
-  }
-
-  deleteMeta(docName: string, metaKey: string): Promise<void> {
-    return this.delete(docName, createMetaKey(metaKey));
-  }
-
-  // Document
 
   async deleteDocument(docName: string): Promise<void> {
     const items = await this.query({
@@ -155,25 +112,6 @@ export default class YDynamoDBClient {
     return (data.Items ?? []) as DynamodbItem[];
   }
 
-  private async get(
-    docName: string,
-    key: string
-  ): Promise<DynamodbItem | null> {
-    const input: GetItemInput = {
-      TableName: this.tableName,
-      Key: {
-        docName: { S: v1PKey(docName) },
-        sortKey: { S: key },
-      },
-    };
-
-    const data = await this.client.send(new GetItemCommand(input));
-    if (!data.Item) {
-      return null;
-    }
-    return data.Item as DynamodbItem;
-  }
-
   private async put(
     docName: string,
     key: string,
@@ -185,7 +123,7 @@ export default class YDynamoDBClient {
       Item: {
         docName: { S: v1PKey(docName) },
         sortKey: { S: key },
-        value: { B: valueEncoding.encode(val) },
+        value: { B: val },
       },
     };
 
@@ -198,18 +136,6 @@ export default class YDynamoDBClient {
       );
       throw err;
     }
-  }
-
-  private async delete(docName: string, key: string): Promise<void> {
-    const input: DeleteItemInput = {
-      Key: {
-        docName: { S: v1PKey(docName) },
-        sortKey: { S: key },
-      },
-      TableName: this.tableName,
-    };
-
-    await this.client.send(new DeleteItemCommand(input));
   }
 }
 

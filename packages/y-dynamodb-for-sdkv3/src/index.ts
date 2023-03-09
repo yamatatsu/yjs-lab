@@ -83,22 +83,6 @@ export default class DynamoDBPersistence {
     await this.transact(async () => this.client.deleteDocument(docName));
   }
 
-  async setMeta(docName: string, metaKey: string, value: any): Promise<void> {
-    await this.transact(() => this.client.putMeta(docName, metaKey, value));
-  }
-
-  async getMeta(docName: string, metaKey: string): Promise<any> {
-    return this.transact(() => this.client.getMeta(docName, metaKey));
-  }
-
-  async getMetas(docName: string): Promise<Map<string, any> | null> {
-    return this.transact(() => this.client.getMetas(docName));
-  }
-
-  async delMeta(docName: string, metaKey: string): Promise<void> {
-    await this.transact(() => this.client.deleteMeta(docName, metaKey));
-  }
-
   private async _flush(
     docName: string,
     stateAsUpdate: Uint8Array,

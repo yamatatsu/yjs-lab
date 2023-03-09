@@ -70,57 +70,6 @@ describe("update", () => {
   });
 });
 
-describe("meta", () => {
-  test("put and get number", async () => {
-    // GIVEN
-    await client.putMeta(docName, "metaKey_0", 999999);
-
-    // WHEN
-    const meta = await client.getMeta(docName, "metaKey_0");
-
-    // THEN
-    expect(meta).toBe(999999);
-  });
-
-  test("put and get string", async () => {
-    // GIVEN
-    await client.putMeta(docName, "metaKey_0", "value_0");
-
-    // WHEN
-    const meta = await client.getMeta(docName, "metaKey_0");
-
-    // THEN
-    expect(meta).toBe("value_0");
-  });
-
-  test("put and getMetas", async () => {
-    // GIVEN
-    await client.putMeta(docName, "metaKey_0", 999999);
-    await client.putMeta(docName, "metaKey_1", "value_0");
-
-    // WHEN
-    const metas = await client.getMetas(docName);
-
-    // THEN
-    const expected = new Map();
-    expected.set("metaKey_0", 999999);
-    expected.set("metaKey_1", "value_0");
-    expect(metas).toEqual(expected);
-  });
-
-  test("put and delete", async () => {
-    // GIVEN
-    await client.putMeta(docName, "metaKey_0", "value_0");
-    await client.deleteMeta(docName, "metaKey_0");
-
-    // WHEN
-    const meta = await client.getMeta(docName, "metaKey_0");
-
-    // THEN
-    expect(meta).toBeNull();
-  });
-});
-
 describe("document", () => {
   test("delete", async () => {
     // GIVEN
@@ -130,10 +79,8 @@ describe("document", () => {
     // WHEN
     await client.deleteDocument(docName);
     const { updates: updateItems } = await client.getUpdates(docName);
-    const metas = await client.getMetas(docName);
 
     // THEN
     expect(updateItems).toHaveLength(0);
-    expect(metas).toEqual(new Map());
   });
 });
