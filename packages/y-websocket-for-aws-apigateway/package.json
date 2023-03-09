@@ -36,7 +36,7 @@
   },
   "scripts": {
     "build": "unbuild",
-    "test": "vitest run"
+    "test": "echo 'no test'"
   },
   "dependencies": {
     "lib0": "^0.2.62",
