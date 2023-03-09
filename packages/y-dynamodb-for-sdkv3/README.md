@@ -75,20 +75,6 @@ Get the differences directly from the database. The same as
 
 Delete a document, and all associated data from the database.
 
-#### `persistence.setMeta(docName: string, metaKey: string, value: any): Promise<void>`
-
-Persist some meta information in the database and associate it with a document.
-It is up to you what you store here.
-
-#### `persistence.getMeta(docName: string, metaKey: string): Promise<any|undefined>`
-
-Retrieve a store meta value from the database. Returns undefined if the
-`metaKey` doesn't exist.
-
-#### `persistence.delMeta(docName: string, metaKey: string): Promise<void>`
-
-Delete a store meta value.
-
 #### `persistence.flushDocument(docName: string): Promise<void>` (dev only)
 
 Internally y-dynamodb-for-sdkv3 stores incremental updates. You can merge all document
@@ -96,7 +82,7 @@ updates to a single entry. You probably never have to use this.
 
 ## Improvements
 
-- use atomic counter for conflict-free and improving performance
+- generate unique id without querying to database for conflict-free and improving performance
 - use string sort key for readable DynamoDB Table items
 - improve the `flushDocument()` procedure for conflict-free
 
