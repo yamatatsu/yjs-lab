@@ -18,6 +18,57 @@ yarn add y-dynamodb-for-sdkv3 yjs @aws-sdk/client-dynamodb
 pnpm add y-dynamodb-for-sdkv3 yjs @aws-sdk/client-dynamodb
 ```
 
+## Prerequisite
+
+Creating a DynamoDB table is required before using `y-dynamodb-for-sdkv3`.
+
+##### AWS CLI
+
+```bash
+aws dynamodb create-table \
+  --table-name=y-dynamodb \
+  --attribute-definitions \
+    AttributeName=docName,AttributeType=S \
+    AttributeName=sortKey,AttributeType=S \
+  --key-schema \
+    AttributeName=docName,KeyType=HASH \
+    AttributeName=sortKey,KeyType=RANGE \
+  --billing-mode=PAY_PER_REQUEST
+```
+
+##### AWS CloudFormation
+
+```yaml
+Resources:
+  myDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: y-dynamodb
+      AttributeDefinitions:
+        - AttributeName: docName
+          AttributeType: S
+        - AttributeName: sortKey
+          AttributeType: S
+      KeySchema:
+        - AttributeName: docName
+          KeyType: HASH
+        - AttributeName: sortKey
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+```
+
+##### AWS CDK
+
+```ts
+new dynamodb.Table(this, "YDynamodbTable", {
+  tableName: "y-dynamodb",
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+  partitionKey: { name: "docName", type: dynamodb.AttributeType.STRING },
+  sortKey: { name: "sortKey", type: dynamodb.AttributeType.STRING },
+  billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+});
+```
+
 ## Usage
 
 ### Basic Usage
@@ -58,7 +109,11 @@ Even when multiple processes save updates to the same document, they do so witho
 
 ## Other APIs
 
-#### `persistence.getStateVector(docName: string): Promise<Uint8Array>`
+##### getStateVector()
+
+```ts
+getStateVector(docName: string): Promise<Uint8Array>
+```
 
 The state vector (describing the state of the persisted document - see
 [Yjs docs](https://github.com/yjs/yjs#Document-Updates)) is maintained in a separate
@@ -66,21 +121,35 @@ field and constantly updated.
 
 This allows you to sync changes without actually creating a Yjs document.
 
-#### `persistence.getDiff(docName: string, stateVector: Uint8Array): Promise<Uint8Array>`
+##### getDiff()
+
+```ts
+getDiff(docName: string, stateVector: Uint8Array): Promise<Uint8Array>
+```
 
 Get the differences directly from the database. The same as
 `Y.encodeStateAsUpdate(ydoc, stateVector)`.
 
-#### `persistence.clearDocument(docName: string): Promise<void>`
+##### clearDocument()
+
+```ts
+clearDocument(docName: string): Promise<void>
+```
 
 Delete a document, and all associated data from the database.
 
-#### `persistence.flushDocument(docName: string): Promise<void>` (dev only)
+##### flushDocument()
+
+```ts
+flushDocument(docName: string): Promise<void>
+```
 
 Internally y-dynamodb-for-sdkv3 stores incremental updates. You can merge all document
 updates to a single entry. You probably never have to use this.
 
 ## Improvements
+
+`y-dynamodb-for-sdkv3` has some improvements from `y-dynamodb`:
 
 - generate unique id without querying to database for conflict-free and improving performance
 - use string sort key for readable DynamoDB Table items
