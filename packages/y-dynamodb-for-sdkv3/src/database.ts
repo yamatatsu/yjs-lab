@@ -8,7 +8,7 @@ import {
   WriteRequest,
   AttributeValue,
 } from "@aws-sdk/client-dynamodb";
-import { nanoid } from "nanoid";
+import { uniq } from "./uniqueId";
 
 type DynamodbItem = {
   sortKey: AttributeValue.SMember;
@@ -16,7 +16,7 @@ type DynamodbItem = {
 };
 
 const createUpdateKey = (date?: Date): string =>
-  `update:${date ? `${date.toISOString()}_${nanoid()}` : ""}`;
+  `update:${date ? `${date.toISOString()}_${uniq()}` : ""}`;
 
 /**
  * This class concealing the schema of database.
