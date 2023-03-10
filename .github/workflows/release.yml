@@ -83,7 +83,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.packageName }}/${{ steps.bump.outputs.VERSION }}
-          release_name: Release ${{ github.event.inputs.packageName }}/${{ steps.bump.outputs.VERSION }}
+          release_name: ${{ github.event.inputs.packageName }}/${{ steps.bump.outputs.VERSION }}
           body: |
             ${{ steps.get_commit_summary.outputs.COMMIT_SUMMARY }}
           draft: true
