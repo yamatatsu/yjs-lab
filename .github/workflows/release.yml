@@ -69,9 +69,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
       - name: Get commit summary
         id: get_commit_summary
         run: |
@@ -85,8 +82,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
+          tag_name: ${{ github.event.inputs.packageName }}/${{ steps.bump.outputs.VERSION }}
+          release_name: Release ${{ github.event.inputs.packageName }}/${{ steps.bump.outputs.VERSION }}
           body: |
             ${{ steps.get_commit_summary.outputs.COMMIT_SUMMARY }}
           draft: true
