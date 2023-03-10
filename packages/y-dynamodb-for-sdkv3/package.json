@@ -1,6 +1,6 @@
 {
   "name": "y-dynamodb-for-sdkv3",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "DynamoDB database adapter for Yjs",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
