@@ -1,15 +1,27 @@
-import { describe, test, expect } from "vitest";
+import { beforeEach, test, expect } from "vitest";
 import * as Y from "yjs";
 import * as encoding from "lib0/encoding";
 import * as decoding from "lib0/decoding";
 import * as syncProtocol from "y-protocols/sync";
 
+let doc1: Y.Doc;
+let doc2: Y.Doc;
+let arr1: Y.Array<unknown>;
+let arr2: Y.Array<unknown>;
+let map1: Y.Map<unknown>;
+let map2: Y.Map<unknown>;
+
+beforeEach(() => {
+  doc1 = new Y.Doc();
+  doc2 = new Y.Doc();
+  arr1 = doc1.getArray("myArray");
+  arr2 = doc2.getArray("myArray");
+  map1 = doc1.getMap("myMap");
+  map2 = doc2.getMap("myMap");
+});
+
 test("synchronized docs`", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const arr1 = doc1.getArray("myArray");
-  const arr2 = doc2.getArray("myArray");
   doc1.on("update", (update) => Y.applyUpdate(doc2, update));
   doc2.on("update", (update) => Y.applyUpdate(doc1, update));
 
@@ -22,10 +34,6 @@ test("synchronized docs`", () => {
 
 test("applying update", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const arr1 = doc1.getArray("myArray");
-  const arr2 = doc2.getArray("myArray");
   arr1.push(["Hello doc2, you got this?"]);
 
   // WHEN
@@ -38,15 +46,11 @@ test("applying update", () => {
 
 test("use vector", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const arr1 = doc1.getArray("myArray");
-  const arr2 = doc2.getArray("myArray");
-
-  // WHEN
   arr1.push(["first"]);
   const vector2 = Y.encodeStateVector(doc2);
   const diff = Y.encodeStateAsUpdate(doc1, vector2);
+
+  // WHEN
   Y.applyUpdate(doc2, diff);
 
   // THEN
@@ -55,19 +59,14 @@ test("use vector", () => {
 
 test("applying update is commutative", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const arr1 = doc1.getArray("myArray");
-  const arr2 = doc2.getArray("myArray");
-
-  // WHEN
   const updates: Uint8Array[] = [];
   doc1.on("update", (update: Uint8Array) => {
     updates.push(update);
   });
   arr1.push(["first"]);
   arr1.push(["second"]);
-  // apply updates in reverse order
+
+  // WHEN apply updates in reverse order
   updates.reverse().forEach((update) => {
     Y.applyUpdate(doc2, update);
   });
@@ -78,18 +77,14 @@ test("applying update is commutative", () => {
 
 test("applying update is idempotent", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const arr1 = doc1.getArray("myArray");
-  const arr2 = doc2.getArray("myArray");
+  doc1.on("update", (update: Uint8Array) => {
+    Y.applyUpdate(doc2, update);
+  });
+  doc1.on("update", (update: Uint8Array) => {
+    Y.applyUpdate(doc2, update);
+  });
 
   // WHEN an update are applied twice.
-  doc1.on("update", (update: Uint8Array) => {
-    Y.applyUpdate(doc2, update);
-  });
-  doc1.on("update", (update: Uint8Array) => {
-    Y.applyUpdate(doc2, update);
-  });
   arr1.push(["Hello doc2, you got this just once?"]);
 
   // THEN
@@ -166,12 +161,8 @@ test.skip("confirm v2 size of update, vector and diff", () => {
    */
 });
 
-test("confirm how resolve conflict", () => {
+test.only("confirm how resolve conflict", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
-  const map2 = doc2.getMap("myMap");
   map1.set("key_a", "value_a1");
   map2.set("key_a", "value_a2");
 
@@ -185,10 +176,6 @@ test("confirm how resolve conflict", () => {
 
 test("No change is happen when there are any missing data.", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
-  const map2 = doc2.getMap("myMap");
   map1.set("key_a", "value_a1");
   doc1.on("update", (update) => {
     Y.applyUpdate(doc2, update);
@@ -203,12 +190,6 @@ test("No change is happen when there are any missing data.", () => {
 
 test("No change is happen when there are any missing data.", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
-  const map2 = doc2.getMap("myMap");
-
-  // WHEN
   let keyAUpdate;
   doc1.once("update", (update) => {
     keyAUpdate = update;
@@ -218,6 +199,8 @@ test("No change is happen when there are any missing data.", () => {
   doc1.on("update", (update) => {
     Y.applyUpdate(doc2, update);
   });
+
+  // WHEN
   map1.set("key_b", "value_b1");
   Y.applyUpdate(doc2, keyAUpdate);
 
@@ -227,11 +210,6 @@ test("No change is happen when there are any missing data.", () => {
 
 test("update with y-protocol", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
-  const map2 = doc2.getMap("myMap");
-
   doc1.on("update", (update) => {
     const encoder1 = encoding.createEncoder();
     syncProtocol.writeUpdate(encoder1, update);
@@ -253,10 +231,6 @@ test("update with y-protocol", () => {
 
 test("sync with y-protocol", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const doc2 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
-  const map2 = doc2.getMap("myMap");
   map1.set("key_a", "value_a1");
   map2.set("key_b", "value_b1");
 
@@ -287,8 +261,6 @@ test("sync with y-protocol", () => {
 
 test("the change of itself does not trigger update event", () => {
   // GIVEN
-  const doc1 = new Y.Doc();
-  const map1 = doc1.getMap("myMap");
   map1.set("key_a", "value_a1");
   const doc1Update = Y.encodeStateAsUpdate(doc1);
 
