@@ -161,7 +161,7 @@ test.skip("confirm v2 size of update, vector and diff", () => {
    */
 });
 
-test.only("confirm how resolve conflict", () => {
+test("confirm how resolve conflict", () => {
   // GIVEN
   map1.set("key_a", "value_a1");
   map2.set("key_a", "value_a2");
