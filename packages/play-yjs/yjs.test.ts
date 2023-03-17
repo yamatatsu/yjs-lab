@@ -6,10 +6,10 @@ import * as syncProtocol from "y-protocols/sync";
 
 let doc1: Y.Doc;
 let doc2: Y.Doc;
-let arr1: Y.Array<unknown>;
-let arr2: Y.Array<unknown>;
-let map1: Y.Map<unknown>;
-let map2: Y.Map<unknown>;
+let arr1: Y.Array<string>;
+let arr2: Y.Array<string>;
+let map1: Y.Map<string>;
+let map2: Y.Map<string>;
 
 beforeEach(() => {
   doc1 = new Y.Doc();
@@ -21,71 +21,36 @@ beforeEach(() => {
 });
 
 test("synchronized docs`", () => {
-  // GIVEN
-  doc1.on("update", (update) => Y.applyUpdate(doc2, update));
-  doc2.on("update", (update) => Y.applyUpdate(doc1, update));
-
   // WHEN
-  arr1.push(["Hello doc2, you got this?"]);
-
-  // THEN
-  expect(arr2.toArray()).toEqual(["Hello doc2, you got this?"]);
-});
-
-test("applying update", () => {
-  // GIVEN
-  arr1.push(["Hello doc2, you got this?"]);
-
-  // WHEN
-  const update = Y.encodeStateAsUpdate(doc1);
+  const update = pushAndGetUpdate(doc1, arr1, "Hello doc2, you got this?");
   Y.applyUpdate(doc2, update);
 
   // THEN
   expect(arr2.toArray()).toEqual(["Hello doc2, you got this?"]);
 });
 
-test("use vector", () => {
-  // GIVEN
-  arr1.push(["first"]);
-  const vector2 = Y.encodeStateVector(doc2);
-  const diff = Y.encodeStateAsUpdate(doc1, vector2);
-
-  // WHEN
-  Y.applyUpdate(doc2, diff);
-
-  // THEN
-  expect(arr2.toArray()).toEqual(["first"]);
-});
-
 test("applying update is commutative", () => {
   // GIVEN
-  const updates: Uint8Array[] = [];
-  doc1.on("update", (update: Uint8Array) => {
-    updates.push(update);
-  });
-  arr1.push(["first"]);
-  arr1.push(["second"]);
+  const update1 = pushAndGetUpdate(doc1, arr1, "first");
+  const update2 = pushAndGetUpdate(doc1, arr1, "second");
 
   // WHEN apply updates in reverse order
-  updates.reverse().forEach((update) => {
-    Y.applyUpdate(doc2, update);
-  });
+  Y.applyUpdate(doc2, update2);
+  Y.applyUpdate(doc2, update1);
 
   // THEN
   expect(arr2.toArray()).toEqual(["first", "second"]);
 });
 
 test("applying update is idempotent", () => {
-  // GIVEN
-  doc1.on("update", (update: Uint8Array) => {
-    Y.applyUpdate(doc2, update);
-  });
-  doc1.on("update", (update: Uint8Array) => {
-    Y.applyUpdate(doc2, update);
-  });
-
   // WHEN an update are applied twice.
-  arr1.push(["Hello doc2, you got this just once?"]);
+  const update = pushAndGetUpdate(
+    doc1,
+    arr1,
+    "Hello doc2, you got this just once?"
+  );
+  Y.applyUpdate(doc2, update);
+  Y.applyUpdate(doc2, update);
 
   // THEN
   expect(arr2.toArray()).toEqual(["Hello doc2, you got this just once?"]);
@@ -96,21 +61,17 @@ test("applying update is idempotent", () => {
  */
 test.skip("confirm size of update, vector and diff", () => {
   // GIVEN
-  const centralDoc = new Y.Doc();
-  const nodeDoc = new Y.Doc();
-  const centralArr = centralDoc.getArray("myArray");
-  const nodeArr = nodeDoc.getArray("myArray");
-  centralArr.push([...Array(1000)].fill("a"));
-  Y.applyUpdate(nodeDoc, Y.encodeStateAsUpdate(centralDoc));
-  nodeArr.push([...Array(1000)].fill("b"));
+  arr1.push([...Array(1000)].fill("a"));
+  Y.applyUpdate(doc2, Y.encodeStateAsUpdate(doc1));
+  arr2.push([...Array(1000)].fill("b"));
 
   // WHEN
-  const centralUpdate = Y.encodeStateAsUpdate(centralDoc);
-  const nodeUpdate = Y.encodeStateAsUpdate(nodeDoc);
-  const centralVector = Y.encodeStateVector(centralDoc);
-  const nodeVector = Y.encodeStateVector(nodeDoc);
-  const diffNodeToCentral = Y.encodeStateAsUpdate(centralDoc, nodeVector);
-  const diffCentralToNode = Y.encodeStateAsUpdate(nodeDoc, centralVector);
+  const centralUpdate = Y.encodeStateAsUpdate(doc1);
+  const nodeUpdate = Y.encodeStateAsUpdate(doc2);
+  const centralVector = Y.encodeStateVector(doc1);
+  const nodeVector = Y.encodeStateVector(doc2);
+  const diffNodeToCentral = Y.encodeStateAsUpdate(doc1, nodeVector);
+  const diffCentralToNode = Y.encodeStateAsUpdate(doc2, centralVector);
 
   // THEN
   expect(Buffer.from(centralUpdate).byteLength).toBe(3021);
@@ -131,21 +92,17 @@ test.skip("confirm size of update, vector and diff", () => {
  */
 test.skip("confirm v2 size of update, vector and diff", () => {
   // GIVEN
-  const centralDoc = new Y.Doc();
-  const nodeDoc = new Y.Doc();
-  const centralArr = centralDoc.getArray("myArray");
-  const nodeArr = nodeDoc.getArray("myArray");
-  centralArr.push([...Array(1000)].fill("a"));
-  Y.applyUpdate(nodeDoc, Y.encodeStateAsUpdate(centralDoc));
-  nodeArr.push([...Array(1000)].fill("b"));
+  arr1.push([...Array(1000)].fill("a"));
+  Y.applyUpdate(doc2, Y.encodeStateAsUpdate(doc1));
+  arr2.push([...Array(1000)].fill("b"));
 
   // WHEN
-  const centralUpdate = Y.encodeStateAsUpdateV2(centralDoc);
-  const nodeUpdate = Y.encodeStateAsUpdateV2(nodeDoc);
-  const centralVector = Y.encodeStateVector(centralDoc);
-  const nodeVector = Y.encodeStateVector(nodeDoc);
-  const diffNodeToCentral = Y.encodeStateAsUpdateV2(centralDoc, nodeVector);
-  const diffCentralToNode = Y.encodeStateAsUpdateV2(nodeDoc, centralVector);
+  const centralUpdate = Y.encodeStateAsUpdateV2(doc1);
+  const nodeUpdate = Y.encodeStateAsUpdateV2(doc2);
+  const centralVector = Y.encodeStateVector(doc1);
+  const nodeVector = Y.encodeStateVector(doc2);
+  const diffNodeToCentral = Y.encodeStateAsUpdateV2(doc1, nodeVector);
+  const diffCentralToNode = Y.encodeStateAsUpdateV2(doc2, centralVector);
 
   // THEN
   expect(Buffer.from(centralUpdate).byteLength).toBe(3032);
@@ -163,46 +120,37 @@ test.skip("confirm v2 size of update, vector and diff", () => {
 
 test("confirm how resolve conflict", () => {
   // GIVEN
-  map1.set("key_a", "value_a1");
-  map2.set("key_a", "value_a2");
+  const doc1Update = setAndGetUpdate(doc1, map1, "key_a", "value_a1");
+  const doc2Update = setAndGetUpdate(doc2, map2, "key_a", "value_a2");
 
   // WHEN
-  Y.applyUpdate(doc2, Y.encodeStateAsUpdate(doc1));
-  Y.applyUpdate(doc1, Y.encodeStateAsUpdate(doc2));
+  Y.applyUpdate(doc2, doc1Update);
+  Y.applyUpdate(doc1, doc2Update);
 
   // THEN
   expect(map1.toJSON()).toEqual(map2.toJSON()); // map1 and map2 is always same. But It is not sure that the value is "value_a1" or "value_a2".
 });
 
-test("No change is happen when there are any missing data.", () => {
+test("When there are any missing update, no change", () => {
   // GIVEN
   map1.set("key_a", "value_a1");
-  doc1.on("update", (update) => {
-    Y.applyUpdate(doc2, update);
-  });
 
   // WHEN
-  map1.set("key_b", "value_b1");
+  const update = setAndGetUpdate(doc1, map1, "key_b", "value_b1");
+  Y.applyUpdate(doc2, update);
 
   // THEN
   expect(map2.toJSON()).toEqual({}); // doc2 does not have `key_b` yet, because the change of `key_a` have not reached to doc2.
 });
 
-test("No change is happen when there are any missing data.", () => {
+test("When all updates pass to the doc, it is completed", () => {
   // GIVEN
-  let keyAUpdate;
-  doc1.once("update", (update) => {
-    keyAUpdate = update;
-  });
-  map1.set("key_a", "value_a1");
-
-  doc1.on("update", (update) => {
-    Y.applyUpdate(doc2, update);
-  });
+  const update1 = setAndGetUpdate(doc1, map1, "key_a", "value_a1");
 
   // WHEN
-  map1.set("key_b", "value_b1");
-  Y.applyUpdate(doc2, keyAUpdate);
+  const update2 = setAndGetUpdate(doc1, map1, "key_b", "value_b1");
+  Y.applyUpdate(doc2, update2);
+  Y.applyUpdate(doc2, update1);
 
   // THEN
   expect(map2.toJSON()).toEqual({ key_a: "value_a1", key_b: "value_b1" }); // doc2 have both keys! Because both changes reach to doc2.
@@ -210,20 +158,15 @@ test("No change is happen when there are any missing data.", () => {
 
 test("update with y-protocol", () => {
   // GIVEN
-  doc1.on("update", (update) => {
-    const encoder1 = encoding.createEncoder();
-    syncProtocol.writeUpdate(encoder1, update);
-    const buf = encoding.toUint8Array(encoder1);
+  const update = setAndGetUpdate(doc1, map1, "key_a", "value_a1");
+  const encoder1 = encoding.createEncoder();
+  syncProtocol.writeUpdate(encoder1, update);
+  const buf = encoding.toUint8Array(encoder1);
 
-    // ==== send buf ====
-
-    const decoder = decoding.createDecoder(buf);
-    const encoder2 = encoding.createEncoder();
-    syncProtocol.readSyncMessage(decoder, encoder2, doc2, {});
-  });
-
-  // WHEN
-  map1.set("key_a", "value_a1");
+  // WHEN buf is received
+  const decoder = decoding.createDecoder(buf);
+  const encoder2 = encoding.createEncoder();
+  syncProtocol.readSyncMessage(decoder, encoder2, doc2, {});
 
   // THEN
   expect(map2.toJSON()).toEqual({ key_a: "value_a1" });
@@ -274,3 +217,27 @@ test("the change of itself does not trigger update event", () => {
   // THEN
   expect(triggered).toBe(false);
 });
+
+// =====================
+// utils
+
+const setAndGetUpdate = (
+  doc: Y.Doc,
+  map: Y.Map<string>,
+  key: string,
+  value: string
+) => {
+  const stateVector = Y.encodeStateVector(doc);
+  map.set(key, value);
+  return Y.encodeStateAsUpdate(doc, stateVector);
+};
+
+const pushAndGetUpdate = (
+  doc: Y.Doc,
+  array: Y.Array<string>,
+  value: string
+) => {
+  const stateVector = Y.encodeStateVector(doc);
+  array.push([value]);
+  return Y.encodeStateAsUpdate(doc, stateVector);
+};
