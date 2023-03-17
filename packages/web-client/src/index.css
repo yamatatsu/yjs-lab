@@ -15,6 +15,6 @@ button:hover {
 }
 
 #root {
-  max-width: 640px;
+  width: 640px;
   padding: 2rem;
 }
